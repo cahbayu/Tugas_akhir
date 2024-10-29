@@ -707,6 +707,82 @@
 
       <div class="col-lg-3"> 
         <div class="card">
+          <div class="card-body pb-4">
+            <h5 class="card-title">Node Status <span></h5>
+            <div class="node-status">
+              <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  Master Node
+                  <span class="badge bg-success">Online</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  Slave 1
+                  <span class="badge bg-success">Online</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  Slave 2
+                  <span class="badge bg-danger">Offline</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  Slave 3
+                  <span class="badge bg-success">Online</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <style>
+          .node-status {
+            background-color: #f9f9f9; /* Warna latar belakang yang lembut */
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          }
+          .list-group-item {
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+          }
+          .list-group-item:hover {
+            background-color: #e9ecef; /* Warna latar belakang saat hover */
+          }
+          .badge {
+            font-size: 0.8rem;
+          }
+        </style>
+        
+        <script>
+          const nodeStatus = {
+            master: true,
+            slave1: true,
+            slave2: false,
+            slave3: true
+          };
+        
+          document.addEventListener("DOMContentLoaded", () => {
+            const statuses = {
+              master: document.querySelector(".list-group-item:nth-child(1) .badge"),
+              slave1: document.querySelector(".list-group-item:nth-child(2) .badge"),
+              slave2: document.querySelector(".list-group-item:nth-child(3) .badge"),
+              slave3: document.querySelector(".list-group-item:nth-child(4) .badge")
+            };
+        
+            for (const node in nodeStatus) {
+              if (nodeStatus[node]) {
+                statuses[node].innerText = "Online";
+                statuses[node].classList.remove("bg-danger");
+                statuses[node].classList.add("bg-success");
+              } else {
+                statuses[node].innerText = "Offline";
+                statuses[node].classList.remove("bg-success");
+                statuses[node].classList.add("bg-danger");
+              }
+            }
+          });
+        </script>
+        
+        
+        <div class="card">
           <div class="card-body pb-0">
             <h5 class="card-title">Soil Moisture Levels <span>| Today</span></h5>
             <!-- Mengurangi tinggi minimum dan mengubah radius -->

@@ -10,7 +10,6 @@ class Node extends Model
     use HasFactory;
 
     protected $table = 'nodes'; // Nama tabel
-
     protected $primaryKey = 'node_id'; // Primary key yang digunakan
 
     protected $fillable = [
@@ -18,15 +17,25 @@ class Node extends Model
         'last_active',
     ];
 
-    // Jika Anda ingin mendefinisikan relasi, Anda bisa menambahkannya di sini
+    // Metode untuk mendapatkan node_type
+    public static function getNodeType($node_id)
+    {
+        // Mencari node berdasarkan node_id
+        $node = self::find($node_id);
+        return $node ? $node->node_type : null; // Mengembalikan node_type atau null jika tidak ditemukan
+    }
+
+    // Relasi dengan Log
     public function logs()
     {
         return $this->hasMany(Log::class, 'node_id');
     }
 
+    // Relasi dengan Sensor
     public function sensors()
     {
         return $this->hasMany(Sensor::class, 'node_id');
     }
 }
+
 

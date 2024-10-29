@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('sensor_id'); // Kolom untuk foreign key
             $table->decimal('moisture_value', 5, 2); // Nilai kelembaban tanah
             $table->unsignedBigInteger('node_id'); // Kolom untuk foreign key
-            $table->timestamp('created_at')->useCurrent(); // Waktu data dikumpulkan
+            $table->timestamps(); // Waktu data dikumpulkan
         
             // Tentukan foreign key untuk sensor_id
             $table->foreign('sensor_id')->references('sensor_id')->on('sensors')->onDelete('cascade');
