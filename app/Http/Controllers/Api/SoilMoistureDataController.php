@@ -1,29 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Models;
 
-use App\Http\Controllers\Controller;
-use App\Models\SoilMoistureData;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class SoilMoistureDataController extends Controller
+class SoilMoistureData extends Model
 {
-    public function index()
+    use HasFactory;
+
+    protected $table = 'soil_moisture_data';
+    protected $fillable = ['sensor_id', 'moisture_value', 'node_id'];
+
+    public function sensor()
     {
-        return SoilMoistureData::with(['sensor', 'node'])->get();  // Mengambil semua data kelembaban tanah
+        return $this->belongsTo(Sensor::class);
     }
 
-    public function store(Request $request)
+    public function node()
     {
-        $request->validate([
-            'sensor_id' => 'required|exists:sensors,sensor_id',
-            'node_id' => 'required|exists:nodes,node_id',
-            'moisture_value' => 'required|numeric',
-        ]);
-
-        $data = SoilMoistureData::create($request->all());
-
-        return response()->json($data, 201);  // Mengembalikan data kelembaban yang baru dibuat
+        return $this->belongsTo(Node::class);
     }
 }
+
 

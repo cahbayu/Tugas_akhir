@@ -1,28 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Models;
 
-use App\Http\Controllers\Controller;
-use App\Models\Sensor;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class SensorController extends Controller
+class Sensor extends Model
 {
-    public function index()
+    use HasFactory;
+
+    protected $table = 'sensors';
+    protected $fillable = ['node_id', 'sensor_name'];
+
+    public function node()
     {
-        return Sensor::all();  // Mengambil semua sensor
+        return $this->belongsTo(Node::class);
     }
 
-    public function store(Request $request)
+    public function soilMoistureData()
     {
-        $request->validate([
-            'node_id' => 'required|exists:nodes,node_id',
-            'sensor_name' => 'required|string|max:50',
-        ]);
-
-        $sensor = Sensor::create($request->all());
-
-        return response()->json($sensor, 201);  // Mengembalikan sensor yang baru dibuat
+        return $this->hasMany(SoilMoistureData::class);
     }
 }
+
 

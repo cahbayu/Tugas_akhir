@@ -1,28 +1,21 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Models;
 
-use App\Http\Controllers\Controller;
-use App\Models\Log;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class LogController extends Controller
+class Log extends Model
 {
-    public function index()
+    use HasFactory;
+
+    protected $table = 'logs';
+    protected $fillable = ['node_id', 'action', 'node_type'];
+
+    public function node()
     {
-        return Log::with('node')->get();  // Mengambil semua log
-    }
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'node_id' => 'required|exists:nodes,node_id',
-            'action' => 'required|string|max:255',
-        ]);
-
-        $log = Log::create($request->all());
-
-        return response()->json($log, 201);  // Mengembalikan log yang baru dibuat
+        return $this->belongsTo(Node::class);
     }
 }
+
 

@@ -12,13 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sensors', function (Blueprint $table) {
-            $table->id('sensor_id');
+            $table->id('sensor_id'); // Primary key untuk tabel sensors
             $table->unsignedBigInteger('node_id');
-            $table->string('sensor_name', 50);
-            $table->timestamps(); // includes created_at and updated_at columns
-    
+            $table->string('sensor_name', 50); // Kolom untuk foreign key
+            $table->timestamps();
+        
+            // Menambahkan foreign key yang mengacu pada node_id
             $table->foreign('node_id')->references('node_id')->on('nodes')->onDelete('cascade');
         });
+        
+        
     }
 
     /**

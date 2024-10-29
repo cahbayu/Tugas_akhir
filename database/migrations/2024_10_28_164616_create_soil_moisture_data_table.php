@@ -12,15 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('soil_moisture_data', function (Blueprint $table) {
-            $table->id('data_id');
-            $table->unsignedBigInteger('sensor_id');
-            $table->unsignedBigInteger('node_id');
-            $table->decimal('moisture_value', 5, 2);
-            $table->timestamp('created_at')->useCurrent();
-    
+            $table->id('data_id'); // Primary Key
+            $table->unsignedBigInteger('sensor_id'); // Kolom untuk foreign key
+            $table->decimal('moisture_value', 5, 2); // Nilai kelembaban tanah
+            $table->unsignedBigInteger('node_id'); // Kolom untuk foreign key
+            $table->timestamp('created_at')->useCurrent(); // Waktu data dikumpulkan
+        
+            // Tentukan foreign key untuk sensor_id
             $table->foreign('sensor_id')->references('sensor_id')->on('sensors')->onDelete('cascade');
+            // Tentukan foreign key untuk node_id
             $table->foreign('node_id')->references('node_id')->on('nodes')->onDelete('cascade');
-        });
+        });        
     }
 
     /**

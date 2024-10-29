@@ -9,11 +9,17 @@ class Log extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['node_id', 'action'];
+    protected $table = 'logs'; // Nama tabel
+
+    protected $fillable = [
+        'node_id',
+        'action',
+        'node_type',
+    ];
 
     public function node()
     {
-        return $this->belongsTo(Node::class);
+        return $this->belongsTo(Node::class, 'node_id');
     }
 }
 

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route; 
-use App\Http\Controllers\TableController;
+use App\Http\Controllers\Api\NodeController;
 
 Route::get('/', function () {
     return view('pages-login');
@@ -42,4 +42,8 @@ Route::get('/pages-register', function () {
 Route::get('/users-profile', function () {
     return view('users-profile');
 });
+
+//Api
+//InputData
+Route::post('/api-inputdata', [NodeController::class, 'receiveData'])->name('api.input') ;
 
