@@ -37,7 +37,7 @@
     <div class="d-flex align-items-center justify-content-between">
       <a href="index" class="logo d-flex align-items-center">
         <img src="assets/img/logo.png" alt="">
-        <span class="d-none d-lg-block">NiceAdmin</span>
+        <span class="d-none d-lg-block">RoleFlex</span>
       </a>
       <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
@@ -62,13 +62,13 @@
 
           <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
             <img src="assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">
-            <span class="d-none d-md-block dropdown-toggle ps-2">K. Anderson</span>
+            <span class="d-none d-md-block dropdown-toggle ps-2">Awal Cahyo B.A</span>
           </a><!-- End Profile Iamge Icon -->
 
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
-              <h6>Kevin Anderson</h6>
-              <span>Web Designer</span>
+              <h6>Awal Cahyo B.A</h6>
+              <span>User</span>
             </li>
             <li>
               <hr class="dropdown-divider">
@@ -118,7 +118,6 @@
     </nav><!-- End Icons Navigation -->
 
   </header><!-- End Header -->
-
   <!-- ======= Sidebar ======= -->
   <aside id="sidebar" class="sidebar">
 
@@ -222,7 +221,7 @@
         <div class="col-xxl-3 col-md-6">
           <div class="card info-card sales-card">
             <div class="card-body">
-              <h5 class="card-title">Paket Data <span id="data-title">| Master</span></h5>
+              <h5 class="card-title">Paket Data<span id="data-title">| Slave 1</span></h5>
           
               <div class="d-flex align-items-center">
                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
@@ -240,7 +239,7 @@
         <div class="col-xxl-3 col-md-6">
           <div class="card info-card revenue-card">
             <div class="card-body">
-              <h5 class="card-title">Log <span id="revenue-title">| Master</span></h5>
+              <h5 class="card-title">Log<span id="data-title">| Slave 1</span></h5>
         
               <div class="d-flex align-items-center">
                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
@@ -259,7 +258,7 @@
         <div class="col-xxl-3 col-xl-12">
           <div class="card info-card customers-card">
              <div class="card-body">
-              <h5 class="card-title">Packetloss <span id="packetloss-title">| This Year</span></h5>
+              <h5 class="card-title">Packetloss<span id="data-title">| Slave 1</span></h5>
 
               <div class="d-flex align-items-center">
                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
@@ -277,18 +276,22 @@
         <div class="col-lg-12">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title">Data Salve 1</h5>
-            
-                <!-- Dropdown untuk memilih rentang waktu -->
-                <select id="timeRange" class="form-select mb-3">
-                  <option value="hourly">Per Jam</option>
-                  <option value="daily">Per Hari</option>
-                  <option value="monthly">Per Bulan</option>
-                </select>
-            
+                <h5 class="card-title">Data Slave 1</h5>
                 <!-- Line Chart -->
                 <div id="lineChart"></div>
-            
+              
+                <div class="filter mb-3" id="timeRange">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li>
+                    <li><a class="dropdown-item" href="#" onclick="updateChart('hourly'); return false;">Per Jam</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="updateChart('daily'); return false;">Per Hari</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="updateChart('monthly'); return false;">Per Bulan</a></li>
+                  </ul>
+                </div>
+              
                 <script>
                   document.addEventListener("DOMContentLoaded", () => {
                     // Contoh Data JSON per Jam, Hari, dan Bulan
@@ -310,7 +313,7 @@
                         // Tambah hingga 12 bulan...
                       ]
                     };
-            
+              
                     // Fungsi untuk mengambil data berdasarkan rentang waktu
                     const getDataByRange = (range) => {
                       const data = jsonData[range];
@@ -319,10 +322,10 @@
                       const moistureData = Array.from({ length: 4 }, (_, i) =>
                         data.map(entry => entry.moisture[i])
                       );
-            
+              
                       return { categories, byteData, moistureData };
                     };
-            
+              
                     // Inisialisasi Chart
                     let chart = new ApexCharts(document.querySelector("#lineChart"), {
                       series: [
@@ -350,28 +353,28 @@
                         }
                       },
                       tooltip: {
-                      shared: true,
-                      intersect: false,
-                      y: {
+                        shared: true,
+                        intersect: false,
+                        y: {
                           formatter: function (value, { series, seriesIndex, dataPointIndex, w }) {
-                              if (seriesIndex === 0) {
-                                  return "Byte Data: " + value + " B";  // Menampilkan byte data untuk Bytes Data
-                              } else {
-                                  // Mendapatkan nilai kelembaban
-                                  const moisture = w.config.series[seriesIndex].data[dataPointIndex];
-                                  
-                                  // Menampilkan byte dan persentase kelembaban
-                                  return "Sensor " + seriesIndex + ": " + value + " B, " + moisture + "%";
-                              }
+                            if (seriesIndex === 0) {
+                              return "Byte Data: " + value + " B";  // Menampilkan byte data untuk Bytes Data
+                            } else {
+                              // Mendapatkan nilai kelembaban
+                              const moisture = w.config.series[seriesIndex].data[dataPointIndex];
+                              
+                              // Menampilkan byte dan persentase kelembaban
+                              return "Sensor " + seriesIndex + ": " + value + " B, " + moisture + "%";
+                            }
                           }
+                        }
                       }
-                  }
                     });
-            
+              
                     chart.render();
-            
+              
                     // Fungsi untuk memperbarui chart berdasarkan rentang waktu
-                    const updateChart = (range) => {
+                    window.updateChart = (range) => {
                       const { categories, byteData, moistureData } = getDataByRange(range);
                       chart.updateOptions({
                         xaxis: { categories },
@@ -384,113 +387,120 @@
                         ]
                       });
                     };
-            
-                    // Event Listener untuk Dropdown Rentang Waktu
-                    document.getElementById('timeRange').addEventListener('change', (e) => {
-                      updateChart(e.target.value);
-                    });
-            
+              
                     // Muat Data Default (Per Jam)
                     updateChart('hourly');
                   });
-                </script>
+                  </script>
                 <!-- End Line Chart -->
-              </div>
+                </div>
+              
             </div> 
 
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title">Packet Loss</h5>
-            
-                <!-- Dropdown untuk memilih rentang waktu -->
-                <select id="timeRangePacketLoss" class="form-select mb-3">
-                  <option value="hourly">Per Jam</option>
-                  <option value="daily">Per Hari</option>
-                  <option value="monthly">Per Bulan</option>
-                </select>
-            
-                <!-- Area Chart -->
-                <div id="areaChart"></div>
-            
-                <script>
-                  document.addEventListener("DOMContentLoaded", () => {
-                    // Contoh data JSON (data per jam, hari, dan bulan)
-                    const jsonData = {
-                      hourly: Array.from({ length: 24 }, (_, i) => ({
-                        time: `${i}:00`,
-                        sent: Math.floor(Math.random() * 100 + 900),
-                        lost: Math.floor(Math.random() * 10 + 5)
-                      })),
-                      daily: Array.from({ length: 30 }, (_, i) => ({
-                        time: `Day ${i + 1}`,
-                        sent: Math.floor(Math.random() * 3000 + 27000),
-                        lost: Math.floor(Math.random() * 50 + 100)
-                      })),
-                      monthly: Array.from({ length: 12 }, (_, i) => ({
-                        time: `Month ${i + 1}`,
-                        sent: Math.floor(Math.random() * 100000 + 800000),
-                        lost: Math.floor(Math.random() * 500 + 3000)
-                      }))
-                    };
-            
-                    // Fungsi untuk mengambil data sesuai rentang waktu
-                    const getDataByRange = (range) => {
-                      const data = jsonData[range];
-                      const categories = data.map(entry => entry.time);
-                      const sentData = data.map(entry => entry.sent);
-                      const lostData = data.map(entry => entry.lost);
-            
-                      return { categories, sentData, lostData };
-                    };
-            
-                    // Inisialisasi chart
-                    let chart = new ApexCharts(document.querySelector("#areaChart"), {
-                      series: [
-                        { name: "Total Data Terkirim", data: [] },
-                        { name: "Packet Loss", data: [] }
-                      ],
-                      chart: {
-                        height: 350,
-                        type: 'line',
-                        zoom: { enabled: true }
-                      },
-                      dataLabels: { enabled: false },
-                      stroke: { curve: 'smooth' },
-                      xaxis: { categories: [] },
-                      tooltip: {
-                        shared: true,
-                        intersect: false
-                      },
-                      colors: ['#00b894', '#d63031'],
-                      grid: {
-                        row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 }
-                      }
-                    });
-            
-                    chart.render();
-            
-                    // Fungsi untuk memperbarui chart berdasarkan rentang waktu
-                    const updateChart = (range) => {
-                      const { categories, sentData, lostData } = getDataByRange(range);
-                      chart.updateOptions({
-                        xaxis: { categories },
-                        series: [
-                          { name: "Total Data Terkirim", data: sentData },
-                          { name: "Packet Loss", data: lostData }
-                        ]
-                      });
-                    };
-            
-                    // Event listener untuk dropdown rentang waktu Packet Loss
-                    document.getElementById('timeRangePacketLoss').addEventListener('change', (e) => {
-                      updateChart(e.target.value);
-                    });
-            
-                    // Muat data default (per jam)
-                    updateChart('hourly');
-                  });
-                </script>
-              </div>
+                    <h5 class="card-title">Packet Loss</h5>
+
+                    <!-- Filter Dropdown -->
+                    <div class="filter mb-3" id="timeRangeloss">
+                        <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                            <li class="dropdown-header text-start">
+                                <h6>Filter</h6>
+                            </li>
+                            <li><a class="dropdown-item" href="#" onclick="showPacketLoss('hourly'); return false;">Per Jam</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="showPacketLoss('daily'); return false;">Per Hari</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="showPacketLoss('monthly'); return false;">Per Bulan</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Area Chart -->
+                    <div id="areaChart"></div>
+
+                    <script>
+                        document.addEventListener("DOMContentLoaded", () => {
+                            // Contoh data JSON (data per jam, hari, dan bulan)
+                            const jsonData = {
+                                hourly: Array.from({ length: 24 }, (_, i) => ({
+                                    time: `${i}:00`,
+                                    sent: Math.floor(Math.random() * 100 + 900),
+                                    lost: Math.floor(Math.random() * 10 + 5)
+                                })),
+                                daily: Array.from({ length: 30 }, (_, i) => ({
+                                    time: `Day ${i + 1}`,
+                                    sent: Math.floor(Math.random() * 3000 + 27000),
+                                    lost: Math.floor(Math.random() * 50 + 100)
+                                })),
+                                monthly: Array.from({ length: 12 }, (_, i) => ({
+                                    time: `Month ${i + 1}`,
+                                    sent: Math.floor(Math.random() * 100000 + 800000),
+                                    lost: Math.floor(Math.random() * 500 + 3000)
+                                }))
+                            };
+
+                            // Fungsi untuk mengambil data sesuai rentang waktu
+                            const getDataByRange = (range) => {
+                                const data = jsonData[range];
+                                const categories = data.map(entry => entry.time);
+                                const sentData = data.map(entry => entry.sent);
+                                const lostData = data.map(entry => entry.lost);
+
+                                return { categories, sentData, lostData };
+                            };
+
+                            // Inisialisasi chart
+                            let chart = new ApexCharts(document.querySelector("#areaChart"), {
+                                series: [
+                                    { name: "Total Data Terkirim", data: [] },
+                                    { name: "Packet Loss", data: [] }
+                                ],
+                                chart: {
+                                    height: 350,
+                                    type: 'line',
+                                    zoom: { enabled: true }
+                                },
+                                dataLabels: { enabled: false },
+                                stroke: { curve: 'smooth' },
+                                xaxis: { categories: [] },
+                                tooltip: {
+                                    shared: true,
+                                    intersect: false
+                                },
+                                colors: ['#00b894', '#d63031'],
+                                grid: {
+                                    row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 }
+                                }
+                            });
+
+                            chart.render();
+
+                            // Fungsi untuk memperbarui chart berdasarkan rentang waktu
+                            const updateChart = (range) => {
+                                const { categories, sentData, lostData } = getDataByRange(range);
+                                chart.updateOptions({
+                                    xaxis: { categories },
+                                    series: [
+                                        { name: "Total Data Terkirim", data: sentData },
+                                        { name: "Packet Loss", data: lostData }
+                                    ]
+                                });
+                            };
+
+                            // Event listener untuk dropdown rentang waktu Packet Loss
+                            document.querySelectorAll('#timeRangeloss .dropdown-item').forEach(item => {
+                                item.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    const range = e.target.getAttribute('onclick').match(/'(.*?)'/)[1];
+                                    updateChart(range);
+                                });
+                            });
+
+                            // Muat data default (per jam)
+                            updateChart('hourly');
+                        });
+                    </script>
+                </div>
+
             </div>
             
           <div class="card" >

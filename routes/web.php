@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NodeController;
 
 Route::get('/', function () {
+    return view('lading-page');
+});
+Route::get('/pages-login', function () {
     return view('pages-login');
 });
 Route::get('/index', function () {

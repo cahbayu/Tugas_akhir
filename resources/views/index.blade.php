@@ -38,7 +38,7 @@
     <div class="d-flex align-items-center justify-content-between">
       <a href="index" class="logo d-flex align-items-center">
         <img src="assets/img/logo.png" alt="">
-        <span class="d-none d-lg-block">NiceAdmin</span>
+        <span class="d-none d-lg-block">RoleFlex</span>
       </a>
       <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
@@ -63,13 +63,13 @@
 
           <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
             <img src="assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">
-            <span class="d-none d-md-block dropdown-toggle ps-2">K. Anderson</span>
+            <span class="d-none d-md-block dropdown-toggle ps-2">Awal Cahyo B.A</span>
           </a><!-- End Profile Iamge Icon -->
 
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
-              <h6>Kevin Anderson</h6>
-              <span>Web Designer</span>
+              <h6>Awal Cahyo B.A</h6>
+              <span>User</span>
             </li>
             <li>
               <hr class="dropdown-divider">
@@ -96,6 +96,12 @@
             </li>
 
             <li>
+              <a class="dropdown-item d-flex align-items-center" href="pages-faq">
+                <i class="bi bi-question-circle"></i>
+                <span>Need Help?</span>
+              </a>
+            </li>
+            <li>
               <hr class="dropdown-divider">
             </li>
 
@@ -113,7 +119,6 @@
     </nav><!-- End Icons Navigation -->
 
   </header><!-- End Header -->
-
   <!-- ======= Sidebar ======= -->
   <aside id="sidebar" class="sidebar">
 
@@ -202,32 +207,17 @@
 
             <div class="col-xxl-4 col-md-6">
               <div class="card info-card sales-card">
-              
-                <div class="filter">
-                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                    <li class="dropdown-header text-start">
-                      <h6>Filter</h6>
-                    </li>
-                    <li><a class="dropdown-item" href="#" onclick="showData('master')">Master</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="showData('slave1')">Slave 1</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="showData('slave2')">Slave 2</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="showData('slave3')">Slave 3</a></li>
-                  </ul>
-                </div>
-              
                 <div class="card-body">
-                  <h5 class="card-title">Paket Data <span id="data-title">| Master</span></h5>
+                  <h5 class="card-title">Kelembaban</h5>
                   <div class="d-flex align-items-center">
                     <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                      <i class="bi bi-activity"></i>
+                      <i class="bi bi-moisture"></i>
                     </div>
-                    <div class="ps-1" id="humidity-data">
+                    <div class="ps-3" id="humidity-data">
                       <!-- Data kelembaban akan ditampilkan di sini -->
-                      <h6 id="master-humidity">Master : 6000 B</h6>
-                      <h6 id="slave1-humidity">Slave 1: 1000 B</h6>
-                      <h6 id="slave2-humidity">Slave 2: 2000 B</h6>
-                      <h6 id="slave3-humidity">Slave 3: 3000 B</h6>
+                      <h6 id="slave1-humidity">Slave 1: 75%</h6>
+                      <h6 id="slave2-humidity">Slave 2: 75%</h6>
+                      <h6 id="slave3-humidity">Slave 3: 75%</h6>
                     </div>
                   </div>
               
@@ -236,80 +226,17 @@
               
                   <!-- Bagian total kelembaban -->
                   <div class="mt-3">
-                    <h6 id="total-humidity">Total Byte: 6000 B (Rata-Rata)</h6>
+                    <h6 id="total-humidity">Total Kelembaban: 75% (Rata-Rata)</h6>
                   </div>
                 </div>
               
               </div>
-            </div>   
-            
-            <script>
-              function showData(selection) {
-                let title = document.getElementById("data-title");
-                let masterHumidity = document.getElementById("master-humidity");
-                let slave1Humidity = document.getElementById("slave1-humidity");
-                let slave2Humidity = document.getElementById("slave2-humidity");
-                let slave3Humidity = document.getElementById("slave3-humidity");
-                let total = document.getElementById("total-humidity");
-              
-                // Reset visibility of all humidity data
-                slave1Humidity.style.display = 'block';
-                slave2Humidity.style.display = 'block';
-                slave3Humidity.style.display = 'block';
-                masterHumidity.style.display = 'block';
-              
-                if (selection === 'master') {
-                  title.innerHTML = '| Master';
-                  masterHumidity.innerHTML = `Master: 6000 B`;
-                  slave1Humidity.innerHTML = `Slave 1: 1000 B`;
-                  slave2Humidity.innerHTML = `Slave 2: 2000 B`;
-                  slave3Humidity.innerHTML = `Slave 3: 3000 B`;
-                  total.innerHTML = 'Total Byte: 6000 B (Rata-Rata)';
-                } else if (selection === 'slave1') {
-                  title.innerHTML = '| Slave 1';
-                  masterHumidity.style.display = 'none'; // Hide master data
-                  slave1Humidity.innerHTML = `Slave 1: 1000 B`;
-                  slave2Humidity.innerHTML = `Slave 2: 2000 B`;
-                  slave3Humidity.innerHTML = `Slave 3: 3000 B`;
-                  total.innerHTML = 'Total Byte: 6000 B (Rata-Rata)';
-                } else if (selection === 'slave2') {
-                  title.innerHTML = '| Slave 2';
-                  masterHumidity.style.display = 'none'; // Hide master data
-                  slave1Humidity.style.display = 'none'; // Hide Slave 1
-                  slave2Humidity.innerHTML = `Slave 2: 2000 B`;
-                  slave3Humidity.innerHTML = `Slave 3: 3000`;
-                  total.innerHTML = 'Total Byte: 6000 B (Rata-Rata)';
-                } else if (selection === 'slave3') {
-                  title.innerHTML = '| Slave 3';
-                  masterHumidity.style.display = 'none'; // Hide master data
-                  slave1Humidity.style.display = 'none'; // Hide Slave 1
-                  slave2Humidity.style.display = 'none'; // Hide Slave 2
-                  slave3Humidity.innerHTML = `Slave 3: 3000 B`;
-                  total.innerHTML = 'Total Byte: 6000 B (Rata-Rata)';
-                }
-              }
-            </script>
-            
-          
+            </div> 
            <!-- Revenue Card -->
            <div class="col-xxl-4 col-md-6">
             <div class="card info-card revenue-card">
-          
-              <div class="filter">
-                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                  <li class="dropdown-header text-start">
-                    <h6>Filter</h6>
-                  </li>
-                  <li><a class="dropdown-item" href="#" onclick="showDataRevenue('master')">Master</a></li>
-                  <li><a class="dropdown-item" href="#" onclick="showDataRevenue('slave1')">Slave 1</a></li>
-                  <li><a class="dropdown-item" href="#" onclick="showDataRevenue('slave2')">Slave 2</a></li>
-                  <li><a class="dropdown-item" href="#" onclick="showDataRevenue('slave3')">Slave 3</a></li>
-                </ul>
-              </div>
-          
               <div class="card-body">
-                <h5 class="card-title">Log <span id="revenue-title">| Master</span></h5>
+                <h5 class="card-title">Log</h5>
           
                 <div class="d-flex align-items-center">
                   <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
@@ -336,67 +263,12 @@
           
             </div>
           </div>
-          
-          <script>
-            function showDataRevenue(selection) {
-              let title = document.getElementById("revenue-title");
-              let masterRevenue = document.getElementById("master-revenue");
-              let slave1Revenue = document.getElementById("slave1-revenue");
-              let slave2Revenue = document.getElementById("slave2-revenue");
-              let slave3Revenue = document.getElementById("slave3-revenue");
-              let total = document.getElementById("total-revenue");
-          
-              // Hide all data initially
-              masterRevenue.style.display = 'none';
-              slave1Revenue.style.display = 'none';
-              slave2Revenue.style.display = 'none';
-              slave3Revenue.style.display = 'none';
-          
-              if (selection === 'master') {
-                title.innerHTML = '| Master';
-                masterRevenue.style.display = 'block';  // Show Master
-                slave1Revenue.style.display = 'block';  // Show Slave 1
-                slave2Revenue.style.display = 'block';  // Show Slave 2
-                slave3Revenue.style.display = 'block';  // Show Slave 3
-                total.innerHTML = 'Total: 3660'; // Adjust total for Master (sum of all Slaves)
-              } else if (selection === 'slave1') {
-                title.innerHTML = '| Slave 1';
-                slave1Revenue.style.display = 'block';  // Show Slave 1
-                slave2Revenue.style.display = 'block';  // Show Slave 2
-                slave3Revenue.style.display = 'block';  // Show Slave 3
-                total.innerHTML = 'Total: 3660'; // Adjust total for Slave 1 (sum of all)
-              } else if (selection === 'slave2') {
-                title.innerHTML = '| Slave 2';
-                slave2Revenue.style.display = 'block';  // Show Slave 2
-                slave3Revenue.style.display = 'block';  // Show Slave 3
-                total.innerHTML = 'Total: 2440'; // Adjust total for Slave 2 (sum of Slave 2 and Slave 3)
-              } else if (selection === 'slave3') {
-                title.innerHTML = '| Slave 3';
-                slave3Revenue.style.display = 'block';  // Show Slave 3
-                total.innerHTML = 'Total: 1220'; // Adjust total for Slave 3 (only Slave 3)
-              }
-            }
-          </script>
 
             <!-- Customers Card -->
             <div class="col-xxl-4 col-xl-12">
               <div class="card info-card customers-card">
-                <div class="filter">
-                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                    <li class="dropdown-header text-start">
-                      <h6>Filter</h6>
-                    </li>
-                    <li><a class="dropdown-item" href="#" onclick="showPacketLoss('master')">Master</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="showPacketLoss('slave1')">Slave 1</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="showPacketLoss('slave2')">Slave 2</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="showPacketLoss('slave3')">Slave 3</a></li>
-                  </ul>
-                </div>
-
                 <div class="card-body">
-                  <h5 class="card-title">Packetloss <span id="packetloss-title">| This Year</span></h5>
-
+                  <h5 class="card-title">Packetloss</h5>
                   <div class="d-flex align-items-center">
                     <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                       <i class="bi bi-graph-down-arrow"></i>
@@ -422,46 +294,6 @@
               </div>
             </div>
 
-            <script>
-              function showPacketLoss(selection) {
-                let title = document.getElementById("packetloss-title");
-                let masterPacketloss = document.getElementById("master-packetloss");
-                let slave1Packetloss = document.getElementById("slave1-packetloss");
-                let slave2Packetloss = document.getElementById("slave2-packetloss");
-                let slave3Packetloss = document.getElementById("slave3-packetloss");
-                let total = document.getElementById("total-packetloss");
-
-                // Hide all data initially
-                masterPacketloss.style.display = 'none';
-                slave1Packetloss.style.display = 'none';
-                slave2Packetloss.style.display = 'none';
-                slave3Packetloss.style.display = 'none';
-
-                if (selection === 'master') {
-                  title.innerHTML = '| Master';
-                  masterPacketloss.style.display = 'block';  // Show Master
-                  slave1Packetloss.style.display = 'block';  // Show Slave 1
-                  slave2Packetloss.style.display = 'block';  // Show Slave 2
-                  slave3Packetloss.style.display = 'block';  // Show Slave 3
-                  total.innerHTML = 'Total Packetloss: 0,75% (156)'; // Adjust total for Master
-                } else if (selection === 'slave1') {
-                  title.innerHTML = '| Slave 1';
-                  slave1Packetloss.style.display = 'block';  // Show Slave 1
-                  slave2Packetloss.style.display = 'block';  // Show Slave 2
-                  slave3Packetloss.style.display = 'block';  // Show Slave 3
-                  total.innerHTML = 'Total Packetloss: 0,75% (156)'; // Adjust total for Slave 1
-                } else if (selection === 'slave2') {
-                  title.innerHTML = '| Slave 2';
-                  slave2Packetloss.style.display = 'block';  // Show Slave 2
-                  slave3Packetloss.style.display = 'block';  // Show Slave 3
-                  total.innerHTML = 'Total Packetloss: 0,50% (104)'; // Adjust total for Slave 2
-                } else if (selection === 'slave3') {
-                  title.innerHTML = '| Slave 3';
-                  slave3Packetloss.style.display = 'block';  // Show Slave 3
-                  total.innerHTML = 'Total Packetloss: 0,25% (52)'; // Adjust total for Slave 3
-                }
-              }
-            </script>
             <!-- Reports -->
             <div class="col-12">
               <div class="card">
@@ -781,10 +613,9 @@
           });
         </script>
         
-        
         <div class="card">
           <div class="card-body pb-0">
-            <h5 class="card-title">Soil Moisture Levels <span>| Today</span></h5>
+            <h5 class="card-title">paket data</h5>
             <!-- Mengurangi tinggi minimum dan mengubah radius -->
             <div id="trafficChart" style="min-height: 300px;" class="echart"></div>
         
@@ -799,7 +630,7 @@
                     left: 'center'
                   },
                   series: [{
-                    name: 'Soil Moisture Levels',
+                    name: 'Paket data',
                     type: 'pie',
                     radius: ['70%', '40%'],  // Mengubah radius agar lebih kecil
                     avoidLabelOverlap: false,
@@ -817,15 +648,19 @@
                     },
                     data: [{
                         value: 80,
-                        name: 'Slave 1: 80%'
+                        name: 'Master: 80 B'
                       },
                       {
                         value: 70,
-                        name: 'Slave 2: 70%'
+                        name: 'Slave 1: 70 B'
                       },
                       {
                         value: 60,
-                        name: 'Slave 3: 60%'
+                        name: 'Slave 2: 60 B'
+                      },
+                      {
+                        value: 60,
+                        name: 'Slave 3: 60 B'
                       }
                     ]
                   }]
