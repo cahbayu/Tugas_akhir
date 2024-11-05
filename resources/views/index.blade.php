@@ -617,7 +617,7 @@
           <div class="card-body pb-0">
             <h5 class="card-title">paket data</h5>
             <!-- Mengurangi tinggi minimum dan mengubah radius -->
-            <div id="trafficChart" style="min-height: 300px;" class="echart"></div>
+            <div id="trafficChart" style="min-height: 300px; margin: 20px 0;" class="echart"></div> <!-- Menambahkan margin -->
         
             <script>
               document.addEventListener("DOMContentLoaded", () => {
@@ -626,13 +626,13 @@
                     trigger: 'item'
                   },
                   legend: {
-                    top: '5%',
+                    top: '-1%',
                     left: 'center'
                   },
                   series: [{
                     name: 'Paket data',
                     type: 'pie',
-                    radius: ['70%', '40%'],  // Mengubah radius agar lebih kecil
+                    radius: ['70%', '45%'],  // Mengubah radius untuk memberikan lebih banyak jarak
                     avoidLabelOverlap: false,
                     label: {
                       show: false,  // Menyembunyikan label di luar lingkaran
@@ -666,10 +666,10 @@
                   }]
                 });
               });
-
             </script>
           </div>
-        </div><!-- End Soil Moisture Levels -->
+        </div>
+        <!-- End Soil Moisture Levels -->
         
         <div class="card">
           <div class="card-body">

@@ -15,17 +15,16 @@
     body {
       font-family: 'Roboto', sans-serif;
       color: #fff;
-      
     }
 
     .header {
-      background-color: rgba(255, 255, 255, 0.582);
+      background-color: rgba(255, 255, 255, 0.632);
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       z-index: 1000;
-      padding: 10px 0;
+      padding: 10px 0; /* Kecilkan ukuran header */
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
@@ -38,7 +37,7 @@
     .header .nav-link {
       color: #333;
       padding: 10px 15px;
-      position: relative;
+      position: relative; /* Tambahkan untuk kotak */
       transition: color 0.3s;
     }
 
@@ -51,20 +50,20 @@
       display: block;
       position: absolute;
       left: 50%;
-      bottom: -5px;
+      bottom: -5px; /* Jarak kotak dari teks */
       transform: translateX(-50%);
       width: 0;
       height: 3px;
-      background: #2196f3;
+      background: #2196f3; /* Warna kotak */
       transition: width 0.3s ease;
     }
 
     .header .nav-link:hover:after {
-      width: 100%;
+      width: 100%; /* Lebar kotak saat hover */
     }
 
     .hero-section {
-      background: linear-gradient(rgba(22, 62, 113, 0.6), rgba(0, 0, 0, 0.8)), url("assets/img/bacgound.jpeg") center center / cover no-repeat;
+      background: linear-gradient(rgba(16, 85, 158, 0.6), rgba(0, 0, 0, 0.8)), url("assets/img/bacgound.jpeg") center center / cover no-repeat;
       color: #fff;
       text-align: center;
       height: 100vh;
@@ -106,7 +105,7 @@
       height: 100px;
       margin: 10px;
       border-radius: 50%;
-      background-color: #2196f3;
+      background-color: #2196f3; /* Warna biru */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -121,7 +120,7 @@
     .node.active {
       opacity: 1;
       transform: scale(1);
-      background-color: #1976d2;
+      background-color: #1976d2; /* Warna biru lebih gelap untuk node aktif */
       box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
     }
 
@@ -150,29 +149,28 @@
     }
 
     .form-control {
-      border: 1px solid #2196f3;
+      border: 1px solid #2196f3; /* Biru untuk border */
       transition: border-color 0.3s;
     }
 
     .form-control:focus {
-      border-color: #1976d2;
+      border-color: #1976d2; /* Biru lebih gelap saat fokus */
       box-shadow: 0 0 5px rgba(25, 118, 210, 0.5);
     }
 
     .btn-primary {
-      background-color: #2196f3;
+      background-color: #2196f3; /* Biru untuk tombol */
       border: none;
       transition: background-color 0.3s;
     }
 
     .btn-primary:hover {
-      background-color: #1976d2;
+      background-color: #1976d2; /* Biru lebih gelap saat hover */
     }
-
     .login-buttons .btn-oval {
-      border-radius: 25px;
-      padding: 15px 30px;
-      font-size: 1.1rem;
+      border-radius: 30px; /* Adjust this value for more or less oval shape */
+      padding: 10px 30px;  /* Increase the padding for larger buttons */
+      font-size: 1.1rem;    /* Increase the font size for better readability */
     }
   </style>
 </head>
@@ -182,7 +180,7 @@
   <header class="header">
     <nav class="navbar navbar-expand-lg navbar-light">
       <div class="container">
-        <a class="navbar-brand" href="#">RoleFlex</a>
+        <a class="navbar-brand" href="#">Proyek IoT</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -206,12 +204,12 @@
   <!-- Hero Section -->
   <section class="hero-section">
     <div class="container text-center">
-        <h1>Topologi Mesh Master-Slave</h1>
-        <p class="lead">Solusi cerdas untuk pemantauan kelembaban tanah berbasis IoT.</p>
-        <div class="login-buttons mt-4">
-            <a href="pages-login" class="btn btn-oval btn-primary mt-2 mx-2">Login</a>
-            <a href="#about" class="btn btn-oval btn-outline-light mt-2 mx-2">Pelajari Lebih Lanjut</a>
-        </div>
+      <h1>Topologi Mesh Master-Slave</h1>
+      <p class="lead">Solusi cerdas untuk pemantauan kelembaban tanah berbasis IoT.</p>
+      <div class="login-buttons mt-4">
+        <a href="pages-login" class="btn btn-oval btn-primary mt-2 mx-2">Login</a>
+        <a href="#about" class="btn btn-oval btn-outline-light mt-2 mx-2">Pelajari Lebih Lanjut</a>
+      </div>
     </div>
   </section>
 
@@ -233,40 +231,43 @@
   </section>
 
   <!-- Features Section -->
-  <section id="features" class="section features-section">
-    <div class="container text-center">
-      <h2 class="fw-bold">Fitur Utama</h2>
-      <div class="row mt-5">
-        <div class="col-md-4">
-          <div class="features-card">
-            <h3>Konektivitas</h3>
-            <p>Konektivitas tanpa batas antara master dan slave, menjamin pertukaran data yang efisien.</p>
-          </div>
+<!-- Features Section -->
+<section id="features" class="features-section">
+  <div class="container">
+    <h2 class="text-center fw-bold">Fitur Utama</h2>
+    <div class="row mt-4">
+      <div class="col-md-4">
+        <div class="features-card">
+          <i class="bi bi-diagram-3-fill" style="font-size: 50px; color: #2196f3;"></i>
+          <h5>Konektivitas Fleksibel</h5>
+          <p>Setiap node terhubung stabil dengan ESP32 dalam struktur jaringan mesh, memungkinkan komunikasi yang efisien.</p>
         </div>
-        <div class="col-md-4">
-          <div class="features-card">
-            <h3>Stabilitas</h3>
-            <p>Backup otomatis untuk menjaga sistem tetap berfungsi meskipun ada node yang mati.</p>
-          </div>
+      </div>
+      <div class="col-md-4">
+        <div class="features-card">
+          <i class="bi bi-moisture" style="font-size: 50px; color: #2196f3;"></i>
+          <h5>Pemantauan Kelembaban</h5>
+          <p>Data kelembaban tanah dikumpulkan secara real-time dari semua slave, membantu pengambilan keputusan yang lebih baik dalam pertanian.</p>
         </div>
-        <div class="col-md-4">
-          <div class="features-card">
-            <h3>Pemantauan Real-Time</h3>
-            <p>Data kelembaban tanah yang akurat dan terkini untuk pengambilan keputusan yang lebih baik.</p>
-          </div>
+      </div>
+      <div class="col-md-4">
+        <div class="features-card">
+          <i class="bi bi-shield-lock-fill" style="font-size: 50px; color: #2196f3;"></i>
+          <h5>Keamanan Data</h5>
+          <p>Data yang dikumpulkan dari sensor dilindungi dengan baik, memastikan integritas dan keamanan informasi penting.</p>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
+<footer class="text-center mt-3">
+  <div class="container">
+    <p class="text-muted">
+      &copy; Copyright <strong><span>Awal Cahyo</span></strong>. All Rights Reserved
+  </div>
+</footer>
 
-  <!-- Footer -->
-  <footer class="text-center mt-3">
-    <div class="container">
-      <p class="text-muted">&copy; Copyright <strong><span>Awal Cahyo</span></strong>. All Rights Reserved
-    </div>
-  </footer>
-
-  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script>
     // Effect on scroll
     window.addEventListener('scroll', function () {
