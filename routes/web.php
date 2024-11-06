@@ -3,12 +3,20 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NodeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\DataController;
 use App\Models\User;
 
 //guest midlleware
-Route::middleware(['guest'])->group(function () {
+Route::middleware('guest')->group(function () {
     Route::get('/login', [UserController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [UserController::class, 'login'])->name('login.post');
+
+    Route::get('/', function () {
+        return view('landing-page');
+    });
+
+    Route::get('/register', [UserController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register', [UserController::class, 'register'])->name('register.post');
 });
 
 
@@ -17,17 +25,17 @@ Route::middleware(['guest'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     //logouy
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+
+    Route::get('/users-profile',[UserController::class, 'profile'])->name('users-profile');
+
+    Route::get('/index', [DataController::class, 'index'])->name('index');
 });
 
-Route::get('/', function () {
-    return view('lading-page');
-});
+
 Route::get('/pages-login', function () {
     return view('pages-login');
 });
-Route::get('/index', function () {
-    return view('index');
-});
+
 Route::get('/tables-data', function () {
     return view('tables-data');
 });
@@ -57,9 +65,6 @@ Route::get('/pages-login', function () {
 });
 Route::get('/pages-register', function () {
     return view('pages-register');
-});
-Route::get('/users-profile', function () {
-    return view('users-profile');
 });
 
 //Api

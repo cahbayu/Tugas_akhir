@@ -258,7 +258,7 @@
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label ">Nama</div>
-                    <div class="col-lg-9 col-md-8">Awal Cahyo Bayu Aji</div>
+                    <div class="col-lg-9 col-md-8">{{ auth()->user()->name }}</div>
                   </div>
 
                   <div class="row">
@@ -283,7 +283,7 @@
 
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Email</div>
-                    <div class="col-lg-9 col-md-8">h1051201030@student.untan.ac.id</div>
+                    <div class="col-lg-9 col-md-8">{{ auth()->user()->email }}</div>
                   </div>
 
                 </div>
