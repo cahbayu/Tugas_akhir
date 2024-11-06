@@ -15,6 +15,9 @@ class Log extends Model
         'node_id',
         'action',
         'node_type',
+        'data_byte',  // Tambahkan ini
+        'created_at',
+        'updated_at',
     ];
 
     public function node()
