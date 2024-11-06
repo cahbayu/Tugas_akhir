@@ -114,11 +114,15 @@
             </li>
 
             <li>
-              <a class="dropdown-item d-flex align-items-center" href="#">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Sign Out</span>
-              </a>
-            </li>
+              <form action="{{ route('logout') }}" method="POST">
+                  @csrf
+                  <button type="submit" class="dropdown-item d-flex align-items-center">
+                      <i class="bi bi-box-arrow-right"></i>
+                      <span>Sign Out</span>
+                  </button>
+              </form>
+          </li>
+          
 
           </ul><!-- End Profile Dropdown Items -->
         </li><!-- End Profile Nav -->
@@ -235,6 +239,7 @@
             <div class="card-body pt-3">
               <!-- Bordered Tabs -->
               <ul class="nav nav-tabs nav-tabs-bordered">
+                
 
                 <li class="nav-item">
                   <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-overview">Overview</button>
@@ -252,139 +257,113 @@
 
                 <div class="tab-pane fade show active profile-overview" id="profile-overview">
                   <h5 class="card-title">About</h5>
-                  <p class="small fst-italic">Sistem pergantian master ke slave dalam arsitektur master-slave adalah mekanisme di mana satu node (master) mengontrol dan mengelola komunikasi dengan beberapa node lainnya (slave). Dalam sistem ini, master bertanggung jawab untuk mengirim perintah dan menerima data dari slave.</p>
-
+                  <p class="small fst-italic">
+                      {{auth()->user()->about}}
+                  </p>
+              
                   <h5 class="card-title">Profile</h5>
-
-                  <div class="row">
-                    <div class="col-lg-3 col-md-4 label ">Nama</div>
-                    <div class="col-lg-9 col-md-8">{{ auth()->user()->name }}</div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-lg-3 col-md-4 label">Universitas</div>
-                    <div class="col-lg-9 col-md-8">Universitas Tanjung Pura</div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-lg-3 col-md-4 label">Pekerjaan</div>
-                    <div class="col-lg-9 col-md-8">Mahasiswa</div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-lg-3 col-md-4 label">Country</div>
-                    <div class="col-lg-9 col-md-8">Indonesia</div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-lg-3 col-md-4 label">No Hp</div>
-                    <div class="col-lg-9 col-md-8">081248104511</div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-lg-3 col-md-4 label">Email</div>
-                    <div class="col-lg-9 col-md-8">{{ auth()->user()->email }}</div>
-                  </div>
-
-                </div>
-
-                <div class="tab-pane fade profile-edit pt-3" id="profile-edit">
-
+              
                   <!-- Profile Edit Form -->
-                  <form>
-                    <div class="row mb-3">
+                    @if(session('success'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                  <div class="row">
+                      <div class="col-lg-3 col-md-4 label">Nama</div>
+                      <div class="col-lg-9 col-md-8">{{ auth()->user()->name }}</div>
+                  </div>
+              
+                  <div class="row">
+                      <div class="col-lg-3 col-md-4 label">Universitas</div>
+                      <div class="col-lg-9 col-md-8">{{ auth()->user()->universitas ?? 'kosong' }}</div>
+                  </div>
+              
+                  <div class="row">
+                      <div class="col-lg-3 col-md-4 label">Pekerjaan</div>
+                      <div class="col-lg-9 col-md-8">{{ auth()->user()->pekerjaan ?? 'kosong' }}</div>
+                  </div>
+              
+                  <div class="row">
+                      <div class="col-lg-3 col-md-4 label">Negara</div>
+                      <div class="col-lg-9 col-md-8">{{ auth()->user()->negara ?? 'kosong' }}</div>
+                  </div>
+              
+                  <div class="row">
+                      <div class="col-lg-3 col-md-4 label">Email</div>
+                      <div class="col-lg-9 col-md-8">{{ auth()->user()->email }}</div>
+                  </div>
+              </div>
+              
+
+              <div class="tab-pane fade profile-edit pt-3" id="profile-edit">
+                
+                <form method="POST" action="{{ route('profile.update') }}">
+                  @csrf
+                  @method('PUT') <!-- This is crucial to specify it's a PUT request -->
+              
+                  <div class="row mb-3">
                       <label for="profileImage" class="col-md-4 col-lg-3 col-form-label">Profile Image</label>
                       <div class="col-md-8 col-lg-9">
-                        <img src="assets/img/profile-img.jpg" alt="Profile">
-                        <div class="pt-2">
-                          <a href="#" class="btn btn-primary btn-sm" title="Upload new profile image"><i class="bi bi-upload"></i></a>
-                          <a href="#" class="btn btn-danger btn-sm" title="Remove my profile image"><i class="bi bi-trash"></i></a>
-                        </div>
+                          <img src="assets/img/profile-img.jpg" alt="Profile">
+                          <div class="pt-2">
+                              <a href="#" class="btn btn-primary btn-sm" title="Upload new profile image"><i class="bi bi-upload"></i></a>
+                              <a href="#" class="btn btn-danger btn-sm" title="Remove my profile image"><i class="bi bi-trash"></i></a>
+                          </div>
                       </div>
-                    </div>
-
-                    <div class="row mb-3">
+                  </div>
+              
+                  <div class="row mb-3">
                       <label for="fullName" class="col-md-4 col-lg-3 col-form-label">Nama</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="fullName" type="text" class="form-control" id="fullName" value="Kevin Anderson">
+                          <input name="fullName" type="text" class="form-control" id="fullName" value="{{ auth()->user()->name }}">
                       </div>
-                    </div>
-
-                    <div class="row mb-3">
+                  </div>
+              
+                  <div class="row mb-3">
                       <label for="about" class="col-md-4 col-lg-3 col-form-label">About</label>
                       <div class="col-md-8 col-lg-9">
-                        <textarea name="about" class="form-control" id="about" style="height: 100px">Sistem pergantian master ke slave dalam arsitektur master-slave adalah mekanisme di mana satu node (master) mengontrol dan mengelola komunikasi dengan beberapa node lainnya (slave). Dalam sistem ini, master bertanggung jawab untuk mengirim perintah dan menerima data dari slave.</textarea>
+                          <textarea name="about" class="form-control" id="about" style="height: 100px">{{ auth()->user()->about }}</textarea>
                       </div>
-                    </div>
-
-                    <div class="row mb-3">
+                  </div>
+              
+                  <div class="row mb-3">
                       <label for="company" class="col-md-4 col-lg-3 col-form-label">Universitas</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="company" type="text" class="form-control" id="company" value="Univeristas Tanjung Pura">
+                          <input name="company" type="text" class="form-control" id="company" value="{{ auth()->user()->universitas }}">
                       </div>
-                    </div>
-
-                    <div class="row mb-3">
+                  </div>
+              
+                  <div class="row mb-3">
                       <label for="Job" class="col-md-4 col-lg-3 col-form-label">Pekerjaan</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="job" type="text" class="form-control" id="Job" value="Mahasiswa">
+                          <input name="job" type="text" class="form-control" id="Job" value="{{ auth()->user()->pekerjaan }}">
                       </div>
-                    </div>
-
-                    <div class="row mb-3">
+                  </div>
+              
+                  <div class="row mb-3">
                       <label for="Country" class="col-md-4 col-lg-3 col-form-label">Negara</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="country" type="text" class="form-control" id="Country" value="Indonesia">
+                          <input name="country" type="text" class="form-control" id="Country" value="{{ auth()->user()->negara }}">
                       </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Phone" class="col-md-4 col-lg-3 col-form-label">No Hp</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="phone" type="text" class="form-control" id="Phone" value="081248104511">
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
+                  </div>
+              
+                  <div class="row mb-3">
                       <label for="Email" class="col-md-4 col-lg-3 col-form-label">Email</label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="email" type="email" class="form-control" id="Email" value="h1051201030@student.untan.ac.id">
+                          <input name="email" type="email" class="form-control" id="Email" value="{{ auth()->user()->email }}">
                       </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Twitter" class="col-md-4 col-lg-3 col-form-label">Twitter Profile</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="twitter" type="text" class="form-control" id="Twitter" value="https://twitter.com/#">
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Facebook" class="col-md-4 col-lg-3 col-form-label">Facebook Profile</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="facebook" type="text" class="form-control" id="Facebook" value="https://facebook.com/#">
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Instagram" class="col-md-4 col-lg-3 col-form-label">Instagram Profile</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="instagram" type="text" class="form-control" id="Instagram" value="https://instagram.com/#">
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Linkedin" class="col-md-4 col-lg-3 col-form-label">Linkedin Profile</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="linkedin" type="text" class="form-control" id="Linkedin" value="https://linkedin.com/#">
-                      </div>
-                    </div>
-
-                    <div class="text-center">
+                  </div>
+              
+                  <div class="text-center">
                       <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                  </form><!-- End Profile Edit Form -->
-                </div>
+                  </div>
+              </form>
+              
+              <!-- End Profile Edit Form -->
+            </div>
+            
 
                 <div class="tab-pane fade pt-3" id="profile-change-password">
                   <!-- Change Password Form -->

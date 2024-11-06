@@ -4,33 +4,39 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NodeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DataController;
+use App\Http\Controllers\ProfileController; // Make sure to import ProfileController
 use App\Models\User;
 
-//guest midlleware
+//guest middleware
+Route::get('/', function () {
+    return view('lading-page');
+});
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [UserController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [UserController::class, 'login'])->name('login.post');
-
-    Route::get('/', function () {
-        return view('landing-page');
-    });
-
     Route::get('/register', [UserController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [UserController::class, 'register'])->name('register.post');
 });
 
-
-
-//auth midlleware group
+//auth middleware group
 Route::middleware(['auth'])->group(function () {
-    //logouy
+    //logout
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
-    Route::get('/users-profile',[UserController::class, 'profile'])->name('users-profile');
+    Route::get('/users-profile', [UserController::class, 'profile'])->name('users-profile');  // Show user profile
 
     Route::get('/index', [DataController::class, 'index'])->name('index');
 });
 
+// Update profile
+Route::middleware('auth')->group(function () {
+    // Route to show the profile edit form (GET request)
+    
+    
+    // Route to handle the profile update (PUT request)
+    Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+});
 
 Route::get('/pages-login', function () {
     return view('pages-login');

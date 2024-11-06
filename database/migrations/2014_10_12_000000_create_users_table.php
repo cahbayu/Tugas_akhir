@@ -14,12 +14,17 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->text('about')->nullable(); // Menambahkan kolom about untuk deskripsi pengguna
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('universitas')->nullable(); // Menyimpan nama universitas
+            $table->string('pekerjaan')->nullable(); // Menyimpan informasi pekerjaan
+            $table->string('negara')->nullable(); // Menyimpan informasi negara
             $table->rememberToken();
             $table->timestamps();
         });
+        
     }
 
     /**
