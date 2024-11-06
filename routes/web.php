@@ -1,7 +1,23 @@
 <?php
 
-use Illuminate\Support\Facades\Route; 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NodeController;
+use App\Http\Controllers\UserController;
+use App\Models\User;
+
+//guest midlleware
+Route::middleware(['guest'])->group(function () {
+    Route::get('/login', [UserController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [UserController::class, 'login'])->name('login.post');
+});
+
+
+
+//auth midlleware group
+Route::middleware(['auth'])->group(function () {
+    //logouy
+    Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+});
 
 Route::get('/', function () {
     return view('lading-page');
