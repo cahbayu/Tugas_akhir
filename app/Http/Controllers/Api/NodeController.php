@@ -42,36 +42,26 @@ class NodeController extends Controller
     // Cek apakah data valid
     if (isset($data['node']['master']) || isset($data['node']['backupmaster'])) {
         $node_id = $data['node']['node_id'];
-        $data_byte = $data['node']['data_byte']; // Ambil data_byte dari node
         $is_backup_master = isset($data['node']['backupmaster']);
-
+        $data_byte = $is_backup_master ? null : ($data['node']['data_byte'] ?? null); // Ambil data_byte jika master
+    
         // Logika pengiriman data dari master atau backup master
         if ($is_backup_master) {
-            $this->saveLog($node_id, "Backup master (Node $node_id) mengambil alih pengiriman data.", $data_byte);
-
-            foreach ($data['node']['slaves'] as $slave) {
-                $slave_node_id = $slave['node_id'];
-                $slave_data_byte = $slave['data_byte']; // Ambil data_byte dari slave
-
-                foreach ($slave['sensor_data'] as $sensor) {
-                    $this->saveSoilMoistureData($sensor['sensor_id'], $sensor['moisture_value'], $slave_node_id);
-                }
-                $this->saveLog($slave_node_id, "Slave (Node $slave_node_id) mengirimkan data kelembaban.", $slave_data_byte);
-            }
+            $this->saveLog($node_id, "Backup master (Node $node_id) mengambil alih pengiriman data.", null);
         } else {
             $this->saveLog($node_id, "Master (Node $node_id) mengirimkan data dari semua slave.", $data_byte);
-
-            foreach ($data['node']['slaves'] as $slave) {
-                $slave_node_id = $slave['node_id'];
-                $slave_data_byte = $slave['data_byte']; // Ambil data_byte dari slave
-
-                foreach ($slave['sensor_data'] as $sensor) {
-                    $this->saveSoilMoistureData($sensor['sensor_id'], $sensor['moisture_value'], $slave_node_id);
-                }
-                $this->saveLog($slave_node_id, "Slave (Node $slave_node_id) mengirimkan data kelembaban.", $slave_data_byte);
-            }
         }
-    } else {
+    
+        foreach ($data['node']['slaves'] as $slave) {
+            $slave_node_id = $slave['node_id'];
+            $slave_data_byte = $slave['data_byte'];
+    
+            foreach ($slave['sensor_data'] as $sensor) {
+                $this->saveSoilMoistureData($sensor['sensor_id'], $sensor['moisture_value'], $slave_node_id);
+            }
+            $this->saveLog($slave_node_id, "Slave (Node $slave_node_id) mengirimkan data kelembaban.", $slave_data_byte);
+        }
+    }else {
         return response()->json(["status" => "error", "message" => "Data tidak valid."], 400);
     }
 
