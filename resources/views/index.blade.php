@@ -327,179 +327,93 @@
                                     </ul>
                                 </div>
                                 <div class="card-body">
-                                    <h5 class="card-title">Reports <span>/Today</span></h5>
+                                    <h5 class="card-title">Packet loss</h5>
                                     <!-- Line Chart -->
                                     <div id="reportsChart"></div>
                                     <script>
                                         document.addEventListener("DOMContentLoaded", () => {
                                             // Data untuk per jam, per hari, dan per bulan
                                             const jsonData = {
-                                                hourly: [{
-                                                        time: "00:00",
-                                                        bytes: 80,
-                                                        slave1: 20,
-                                                        slave2: 30,
-                                                        slave3: 25
-                                                    },
-                                                    {
-                                                        time: "01:00",
-                                                        bytes: 80,
-                                                        slave1: 22,
-                                                        slave2: 32,
-                                                        slave3: 28
-                                                    },
-                                                    {
-                                                        time: "02:00",
-                                                        bytes: 80,
-                                                        slave1: 25,
-                                                        slave2: 35,
-                                                        slave3: 30
-                                                    },
+                                                hourly: [
+                                                    { time: "00:00", Totaldataterkirim: 80, slave1: 20, slave2: 30, slave3: 25 },
+                                                    { time: "01:00", Totaldataterkirim: 80, slave1: 22, slave2: 32, slave3: 28 },
+                                                    { time: "02:00", Totaldataterkirim: 80, slave1: 25, slave2: 35, slave3: 30 },
+                                                    { time: "03:00", Totaldataterkirim: 80, slave1: 25, slave2: 35, slave3: 30 },
+                                                    { time: "04:00", Totaldataterkirim: 80, slave1: 25, slave2: 35, slave3: 30 },
+                                                    { time: "05:00", Totaldataterkirim: 80, slave1: 25, slave2: 35, slave3: 30 },
                                                     // Tambah data hingga 24 jam
                                                 ],
-                                                daily: [{
-                                                        time: "Day 1",
-                                                        bytes: 100,
-                                                        slave1: 70,
-                                                        slave2: 65,
-                                                        slave3: 60
-                                                    },
-                                                    {
-                                                        time: "Day 2",
-                                                        bytes: 100,
-                                                        slave1: 75,
-                                                        slave2: 70,
-                                                        slave3: 65
-                                                    },
-                                                    {
-                                                        time: "Day 3",
-                                                        bytes: 100,
-                                                        slave1: 68,
-                                                        slave2: 62,
-                                                        slave3: 58
-                                                    },
+                                                daily: [
+                                                    { time: "Day 1", Totaldataterkirim: 100, slave1: 70, slave2: 65, slave3: 60 },
+                                                    { time: "Day 2", Totaldataterkirim: 100, slave1: 75, slave2: 70, slave3: 65 },
+                                                    { time: "Day 3", Totaldataterkirim: 100, slave1: 68, slave2: 62, slave3: 58 },
                                                     // Tambah data hingga 30 hari
                                                 ],
-                                                monthly: [{
-                                                        time: "January",
-                                                        bytes: 150,
-                                                        slave1: 74,
-                                                        slave2: 67,
-                                                        slave3: 82
-                                                    },
-                                                    {
-                                                        time: "February",
-                                                        bytes: 150,
-                                                        slave1: 70,
-                                                        slave2: 66,
-                                                        slave3: 79
-                                                    },
-                                                    {
-                                                        time: "March",
-                                                        bytes: 150,
-                                                        slave1: 68,
-                                                        slave2: 65,
-                                                        slave3: 75
-                                                    },
+                                                monthly: [
+                                                    { time: "January", Totaldataterkirim: 150, slave1: 74, slave2: 67, slave3: 82 },
+                                                    { time: "February", Totaldataterkirim: 150, slave1: 70, slave2: 66, slave3: 79 },
+                                                    { time: "March", Totaldataterkirim: 150, slave1: 68, slave2: 65, slave3: 75 },
                                                     // Tambah data hingga 12 bulan
                                                 ]
                                             };
-
+                                
                                             // Fungsi untuk mengambil data berdasarkan rentang waktu
                                             const getDataByRange = (range) => {
                                                 const data = jsonData[range];
                                                 const categories = data.map(entry => entry.time);
-                                                const byteData = data.map(entry => entry.bytes);
+                                                const byteData = data.map(entry => entry.Totaldataterkirim);
                                                 const slave1Data = data.map(entry => entry.slave1);
                                                 const slave2Data = data.map(entry => entry.slave2);
                                                 const slave3Data = data.map(entry => entry.slave3);
-                                                const totalBytesData = data.map(entry => entry.bytes + entry.slave1 + entry.slave2 + entry
-                                                    .slave3); // Total Bytes Data
-
+                                                const TotalDataTerkirim = data.map(entry => entry.Totaldataterkirim + entry.slave1 + entry.slave2 + entry.slave3); // Total Data sent (not in bytes)
+                                
                                                 return {
                                                     categories,
                                                     byteData,
                                                     slave1Data,
                                                     slave2Data,
                                                     slave3Data,
-                                                    totalBytesData
+                                                    TotalDataTerkirim
                                                 };
                                             };
-
+                                
                                             // Inisialisasi Chart
                                             let chart = new ApexCharts(document.querySelector("#reportsChart"), {
-                                                series: [{
-                                                        name: "Total Bytes",
-                                                        data: [],
-                                                        type: 'line'
-                                                    }, // Total Bytes series
-                                                    {
-                                                        name: "Master",
-                                                        data: []
-                                                    },
-                                                    {
-                                                        name: "Slave 1",
-                                                        data: []
-                                                    },
-                                                    {
-                                                        name: "Slave 2",
-                                                        data: []
-                                                    },
-                                                    {
-                                                        name: "Slave 3",
-                                                        data: []
-                                                    }
+                                                series: [
+                                                    { name: "Total Data Terkirim", data: [], type: 'line' }, // Total Data series
+                                                    { name: "Master", data: [] },
+                                                    { name: "Slave 1", data: [] },
+                                                    { name: "Slave 2", data: [] },
+                                                    { name: "Slave 3", data: [] }
                                                 ],
                                                 chart: {
                                                     height: 350,
                                                     type: 'line',
-                                                    toolbar: {
-                                                        show: false
-                                                    },
+                                                    toolbar: { show: false }
                                                 },
-                                                markers: {
-                                                    size: 4
-                                                },
+                                                markers: { size: 4 },
                                                 colors: ['#FF1493', '#1E90FF', '#32CD32', '#FF8C00', '#8A2BE2'],
-                                                stroke: {
-                                                    curve: 'smooth',
-                                                    width: 2
-                                                },
-                                                xaxis: {
-                                                    categories: [],
-                                                },
-                                                yaxis: {
-                                                    title: {
-                                                        text: 'Bytes Data'
-                                                    }
-                                                },
+                                                stroke: { curve: 'smooth', width: 2 },
+                                                xaxis: { categories: [] },
+                                                yaxis: { title: { text: 'Total Data Terkirim' } },
                                                 tooltip: {
                                                     shared: true,
                                                     intersect: false,
                                                     y: {
-                                                        formatter: function(value, {
-                                                            series,
-                                                            seriesIndex,
-                                                            dataPointIndex,
-                                                            w
-                                                        }) {
+                                                        formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
                                                             if (seriesIndex === 0) {
-                                                                return "Byte Data: " + value +
-                                                                    " B"; // Menampilkan byte data untuk Bytes Data
+                                                                return "Total Data Terkirim: " + value; // Menampilkan total data terkirim
                                                             } else {
-                                                                // Mendapatkan nilai kelembaban
-                                                                const moisture = w.config.series[seriesIndex].data[dataPointIndex];
-
-                                                                // Menampilkan byte dan persentase kelembaban
-                                                                return "Sensor " + seriesIndex + ": " + value + " B, " + moisture + "%";
+                                                                // Menampilkan nilai data per slave
+                                                                return + (seriesIndex) + ": " + value;
                                                             }
                                                         }
                                                     }
                                                 }
                                             });
-
+                                
                                             chart.render();
-
+                                
                                             // Fungsi untuk memperbarui chart berdasarkan rentang waktu
                                             const updateChart = (range) => {
                                                 const {
@@ -508,37 +422,20 @@
                                                     slave1Data,
                                                     slave2Data,
                                                     slave3Data,
-                                                    totalBytesData
+                                                    TotalDataTerkirim
                                                 } = getDataByRange(range);
                                                 chart.updateOptions({
-                                                    xaxis: {
-                                                        categories
-                                                    },
-                                                    series: [{
-                                                            name: "Total Bytes",
-                                                            data: totalBytesData,
-                                                            type: 'line'
-                                                        }, // Total Bytes series
-                                                        {
-                                                            name: "Master",
-                                                            data: byteData
-                                                        },
-                                                        {
-                                                            name: "Slave 1",
-                                                            data: slave1Data
-                                                        },
-                                                        {
-                                                            name: "Slave 2",
-                                                            data: slave2Data
-                                                        },
-                                                        {
-                                                            name: "Slave 3",
-                                                            data: slave3Data
-                                                        }
+                                                    xaxis: { categories },
+                                                    series: [
+                                                        { name: "Total Data Terkirim", data: TotalDataTerkirim, type: 'line' }, // Total Data series
+                                                        { name: "Master", data: byteData },
+                                                        { name: "Slave 1", data: slave1Data },
+                                                        { name: "Slave 2", data: slave2Data },
+                                                        { name: "Slave 3", data: slave3Data }
                                                     ]
                                                 });
                                             };
-
+                                
                                             // Event Listener untuk Dropdown Rentang Waktu
                                             document.querySelectorAll('.dropdown-item').forEach(item => {
                                                 item.addEventListener('click', (e) => {
@@ -546,13 +443,16 @@
                                                     updateChart(range);
                                                 });
                                             });
-
+                                
                                             // Muat Data Default (Per Jam)
                                             updateChart('hourly');
                                         });
                                     </script>
                                     <!-- End Line Chart -->
                                 </div>
+                                
+                                
+                                
                             </div>
 
                         </div><!-- End Reports -->
@@ -798,132 +698,6 @@
                         </div>
                     </div>
                     <!-- End Soil Moisture Levels -->
-
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Packet Loss</h5>
-
-                            <!-- Dropdown untuk memilih rentang waktu -->
-                            <select id="timeRangePacketLoss" class="form-select mb-3">
-                                <option value="hourly">Per Jam</option>
-                                <option value="daily">Per Hari</option>
-                                <option value="monthly">Per Bulan</option>
-                            </select>
-
-                            <!-- Area Chart -->
-                            <div id="areaChart" style="min-height: 300px;"></div>
-
-                            <script>
-                                document.addEventListener("DOMContentLoaded", () => {
-                                    const jsonData = {
-                                        hourly: Array.from({
-                                            length: 24
-                                        }, (_, i) => ({
-                                            time: `${i}:00`,
-                                            sent: Math.floor(Math.random() * 100 + 900),
-                                            lost: Math.floor(Math.random() * 10 + 5)
-                                        })),
-                                        daily: Array.from({
-                                            length: 30
-                                        }, (_, i) => ({
-                                            time: `Day ${i + 1}`,
-                                            sent: Math.floor(Math.random() * 3000 + 27000),
-                                            lost: Math.floor(Math.random() * 50 + 100)
-                                        })),
-                                        monthly: Array.from({
-                                            length: 12
-                                        }, (_, i) => ({
-                                            time: `Month ${i + 1}`,
-                                            sent: Math.floor(Math.random() * 100000 + 800000),
-                                            lost: Math.floor(Math.random() * 500 + 3000)
-                                        }))
-                                    };
-
-                                    const getDataByRange = (range) => {
-                                        const data = jsonData[range];
-                                        const categories = data.map(entry => entry.time);
-                                        const sentData = data.map(entry => entry.sent);
-                                        const lostData = data.map(entry => entry.lost);
-
-                                        return {
-                                            categories,
-                                            sentData,
-                                            lostData
-                                        };
-                                    };
-
-                                    let chart = new ApexCharts(document.querySelector("#areaChart"), {
-                                        series: [{
-                                                name: "Total Data Terkirim",
-                                                data: []
-                                            },
-                                            {
-                                                name: "Packet Loss",
-                                                data: []
-                                            }
-                                        ],
-                                        chart: {
-                                            height: 300,
-                                            type: 'line',
-                                            zoom: {
-                                                enabled: true
-                                            }
-                                        },
-                                        dataLabels: {
-                                            enabled: false
-                                        },
-                                        stroke: {
-                                            curve: 'smooth'
-                                        },
-                                        xaxis: {
-                                            categories: []
-                                        },
-                                        tooltip: {
-                                            shared: true,
-                                            intersect: false
-                                        },
-                                        colors: ['#00b894', '#d63031'],
-                                        grid: {
-                                            row: {
-                                                colors: ['#f3f3f3', 'transparent'],
-                                                opacity: 0.5
-                                            }
-                                        }
-                                    });
-
-                                    chart.render();
-
-                                    const updateChart = (range) => {
-                                        const {
-                                            categories,
-                                            sentData,
-                                            lostData
-                                        } = getDataByRange(range);
-                                        chart.updateOptions({
-                                            xaxis: {
-                                                categories
-                                            },
-                                            series: [{
-                                                    name: "Total Data Terkirim",
-                                                    data: sentData
-                                                },
-                                                {
-                                                    name: "Packet Loss",
-                                                    data: lostData
-                                                }
-                                            ]
-                                        });
-                                    };
-
-                                    document.getElementById('timeRangePacketLoss').addEventListener('change', (e) => {
-                                        updateChart(e.target.value);
-                                    });
-
-                                    updateChart('hourly');
-                                });
-                            </script>
-                        </div>
-                    </div>
 
                 </div><!-- End Right side columns -->
 
