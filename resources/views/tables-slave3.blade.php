@@ -61,7 +61,6 @@
         <li class="nav-item dropdown pe-3">
 
           <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <img src="assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">
             <span class="d-none d-md-block dropdown-toggle ps-2">Awal Cahyo B.A</span>
           </a><!-- End Profile Iamge Icon -->
 
@@ -211,7 +210,7 @@
                   <i class="bi bi-moisture"></i>
                 </div>
                 <div class="ps-1" id="humidity-data">
-                  <h6 id="slave1-humidity">Slave 1: 75%</h6>
+                  <h6 id="slave1-humidity">Slave 3 : 75%</h6>
                 </div>
               </div>
             </div>
@@ -230,7 +229,7 @@
                 </div>
                 <div class="ps-1" id="humidity-data">
                   <!-- Data kelembaban akan ditampilkan di sini -->
-                  <h6 id="slave1-humidity">Slave 1: 1000 B</h6>
+                  <h6 id="slave1-humidity">Slave 3 : 1000 B</h6>
                 </div>
               </div>
             </div>
@@ -248,7 +247,7 @@
                 </div>
         
                 <div class="ps-3" id="revenue-data">
-                  <h6 id="slave1-revenue">Slave 1: 1220</h6>
+                  <h6 id="slave1-revenue">Slave 3 : 1220</h6>
                 </div>
               </div>
             </div>
@@ -267,7 +266,7 @@
                 </div>
 
                 <div class="ps-3" id="packetloss-data">
-                  <h6 id="slave1-packetloss">Slave 1 : 0,25% (52)</h6>
+                  <h6 id="slave1-packetloss">Slave 3 : 0,25% (52)</h6>
                 </div>
               </div>
             </div>
