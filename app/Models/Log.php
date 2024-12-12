@@ -11,6 +11,8 @@ class Log extends Model
 
     protected $table = 'logs'; // Nama tabel
 
+    protected $primaryKey = 'log_id';
+
     protected $fillable = [
         'node_id',
         'action',

@@ -32,8 +32,8 @@ Route::middleware(['auth'])->group(function () {
 // Update profile
 Route::middleware('auth')->group(function () {
     // Route to show the profile edit form (GET request)
-    
-    
+
+
     // Route to handle the profile update (PUT request)
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 });
@@ -77,3 +77,6 @@ Route::get('/pages-register', function () {
 //InputData
 Route::post('/api-inputdata', [NodeController::class, 'receiveData'])->name('api.input') ;
 
+
+Route::get('/node-status', [DataController::class, 'getNodeStatus']);
+Route::get('/api/soil-moisture-data', [DataController::class, 'getSoilMoistureData']);

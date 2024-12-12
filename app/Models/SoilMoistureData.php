@@ -10,13 +10,15 @@ class SoilMoistureData extends Model
     use HasFactory;
 
     protected $table = 'soil_moisture_data'; // Nama tabel
+    protected $primaryKey = 'data_id'; // Primary key
     protected $fillable = ['sensor_id', 'moisture_value', 'node_id']; // Kolom yang dapat diisi
 
     // Relasi dengan sensors
     public function sensor()
     {
-        return $this->belongsTo(Sensor::class);
+        return $this->belongsTo(Sensor::class, 'sensor_id'); // Foreign key sensor_id
     }
+
 
     // Relasi dengan nodes
     public function node()

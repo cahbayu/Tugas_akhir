@@ -15,6 +15,8 @@ class Node extends Model
     protected $fillable = [
         'node_type',
         'last_active',
+        'backup_master',
+        'online',
     ];
 
     // Metode untuk mendapatkan node_type

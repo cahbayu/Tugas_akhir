@@ -218,27 +218,23 @@
                                             <i class="bi bi-moisture"></i>
                                         </div>
                                         <div class="ps-3" id="humidity-data">
-                                            <!-- Iterasi melalui nodeHumidityData untuk menampilkan kelembaban setiap node -->
-                                            @foreach ($nodeHumidityData as $nodeId => $humidity)
-                                                <h6 id="slave{{ $nodeId }}-humidity">Node {{ $nodeId }}:
+                                            @foreach ($nodeHumidityData as $nodeType => $humidity)
+                                                @if ($nodeType == 'master')
+                                                    @continue
+                                                @endif
+                                                <h6 id="slave-{{ $nodeType }}-humidity">Node {{ $nodeType }}:
                                                     {{ $humidity ?? 'N/A' }}%</h6>
                                             @endforeach
                                         </div>
+
+
+
                                     </div>
 
                                     <!-- Garis pemisah -->
                                     <hr>
 
-                                    <!-- Bagian total kelembaban rata-rata -->
-                                    <div class="mt-3">
-                                        @php
-                                            $averageHumidity = count($nodeHumidityData)
-                                                ? round(array_sum($nodeHumidityData) / count($nodeHumidityData), 2)
-                                                : 'N/A';
-                                        @endphp
-                                        <h6 id="total-humidity">Total Kelembaban: {{ $averageHumidity }}% (Rata-Rata)
-                                        </h6>
-                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -257,10 +253,10 @@
 
                                         <div class="ps-3" id="revenue-data">
                                             <!-- Data revenue akan ditampilkan di sini -->
-                                            <h6 id="master-revenue">Master : 3660</h6>
-                                            <h6 id="slave1-revenue">Slave 1: 1220</h6>
-                                            <h6 id="slave2-revenue">Slave 2: 1220</h6>
-                                            <h6 id="slave3-revenue">Slave 3: 1220</h6>
+                                            @foreach ($nodess as $node)
+                                                <h6 id="master-revenue">{{ $node->node_type }} :
+                                                    {{ $node->logs->count() }}</h6>
+                                            @endforeach
                                         </div>
                                     </div>
 
@@ -289,10 +285,10 @@
 
                                         <div class="ps-3" id="packetloss-data">
                                             <!-- Data packet loss akan ditampilkan di sini -->
-                                            <h6 id="master-packetloss">Master : 0,25% (52)</h6>
-                                            <h6 id="slave1-packetloss">Slave 1: 0,25% (52)</h6>
-                                            <h6 id="slave2-packetloss">Slave 2: 0,25% (52)</h6>
-                                            <h6 id="slave3-packetloss">Slave 3: 0,25% (52)</h6>
+                                            @foreach ($packetLossData as $nodeType => $packetLoss)
+                                                <h6 id="{{ strtolower($nodeType) }}-packetloss">{{ $nodeType }}:
+                                                    {{ $packetLoss }}</h6>
+                                            @endforeach
                                         </div>
                                     </div>
 
@@ -301,9 +297,12 @@
 
                                     <!-- Bagian total packetloss -->
                                     <div class="mt-3">
-                                        <h6 id="total-packetloss">Total Packetloss: 0,75% (156)</h6>
+                                        <h6 id="total-packetloss">Total Packetloss: {{ $totalPacketLoss }}%
+                                            ({{ $totalLogs }})</h6>
                                     </div>
                                 </div>
+
+
                             </div>
                         </div>
 
@@ -326,132 +325,101 @@
                                     </ul>
                                 </div>
                                 <div class="card-body">
-                                    <h5 class="card-title">Packet loss</h5>
+                                    <h5 class="card-title">Data Yang Diterima</h5>
                                     <!-- Line Chart -->
                                     <div id="reportsChart"></div>
                                     <script>
                                         document.addEventListener("DOMContentLoaded", () => {
-                                            // Data untuk per jam, per hari, dan per bulan
-                                            const jsonData = {
-                                                hourly: [
-                                                    { time: "00:00", Totaldataterkirim: 80, slave1: 20, slave2: 30, slave3: 25 },
-                                                    { time: "01:00", Totaldataterkirim: 80, slave1: 22, slave2: 32, slave3: 28 },
-                                                    { time: "02:00", Totaldataterkirim: 80, slave1: 25, slave2: 35, slave3: 30 },
-                                                    { time: "03:00", Totaldataterkirim: 80, slave1: 25, slave2: 35, slave3: 30 },
-                                                    { time: "04:00", Totaldataterkirim: 80, slave1: 25, slave2: 35, slave3: 30 },
-                                                    { time: "05:00", Totaldataterkirim: 80, slave1: 25, slave2: 35, slave3: 30 },
-                                                    // Tambah data hingga 24 jam
-                                                ],
-                                                daily: [
-                                                    { time: "Day 1", Totaldataterkirim: 100, slave1: 70, slave2: 65, slave3: 60 },
-                                                    { time: "Day 2", Totaldataterkirim: 100, slave1: 75, slave2: 70, slave3: 65 },
-                                                    { time: "Day 3", Totaldataterkirim: 100, slave1: 68, slave2: 62, slave3: 58 },
-                                                    // Tambah data hingga 30 hari
-                                                ],
-                                                monthly: [
-                                                    { time: "January", Totaldataterkirim: 150, slave1: 74, slave2: 67, slave3: 82 },
-                                                    { time: "February", Totaldataterkirim: 150, slave1: 70, slave2: 66, slave3: 79 },
-                                                    { time: "March", Totaldataterkirim: 150, slave1: 68, slave2: 65, slave3: 75 },
-                                                    // Tambah data hingga 12 bulan
-                                                ]
-                                            };
-                                
-                                            // Fungsi untuk mengambil data berdasarkan rentang waktu
-                                            const getDataByRange = (range) => {
-                                                const data = jsonData[range];
-                                                const categories = data.map(entry => entry.time);
-                                                const byteData = data.map(entry => entry.Totaldataterkirim);
-                                                const slave1Data = data.map(entry => entry.slave1);
-                                                const slave2Data = data.map(entry => entry.slave2);
-                                                const slave3Data = data.map(entry => entry.slave3);
-                                                const TotalDataTerkirim = data.map(entry => entry.Totaldataterkirim + entry.slave1 + entry.slave2 + entry.slave3); // Total Data sent (not in bytes)
-                                
-                                                return {
-                                                    categories,
-                                                    byteData,
-                                                    slave1Data,
-                                                    slave2Data,
-                                                    slave3Data,
-                                                    TotalDataTerkirim
-                                                };
-                                            };
-                                
-                                            // Inisialisasi Chart
-                                            let chart = new ApexCharts(document.querySelector("#reportsChart"), {
-                                                series: [
-                                                    { name: "Total Data Terkirim", data: [], type: 'line' }, // Total Data series
-                                                    { name: "Master", data: [] },
-                                                    { name: "Slave 1", data: [] },
-                                                    { name: "Slave 2", data: [] },
-                                                    { name: "Slave 3", data: [] }
-                                                ],
+                                            // Inisialisasi chart dengan ApexCharts
+                                            const chart = new ApexCharts(document.querySelector("#reportsChart"), {
+                                                series: [],
                                                 chart: {
                                                     height: 350,
                                                     type: 'line',
-                                                    toolbar: { show: false }
+                                                    toolbar: {
+                                                        show: false
+                                                    }
                                                 },
-                                                markers: { size: 4 },
+                                                markers: {
+                                                    size: 4
+                                                },
                                                 colors: ['#FF1493', '#1E90FF', '#32CD32', '#FF8C00', '#8A2BE2'],
-                                                stroke: { curve: 'smooth', width: 2 },
-                                                xaxis: { categories: [] },
-                                                yaxis: { title: { text: 'Total Data Terkirim' } },
+                                                stroke: {
+                                                    curve: 'smooth',
+                                                    width: 2
+                                                },
+                                                xaxis: {
+                                                    categories: [] // Waktu akan diisi di sini
+                                                },
+                                                yaxis: {
+                                                    title: {
+                                                        text: 'Jumlah Data'
+                                                    }
+                                                },
                                                 tooltip: {
                                                     shared: true,
                                                     intersect: false,
                                                     y: {
-                                                        formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
-                                                            if (seriesIndex === 0) {
-                                                                return "Total Data Terkirim: " + value; // Menampilkan total data terkirim
-                                                            } else {
-                                                                // Menampilkan nilai data per slave
-                                                                return + (seriesIndex) + ": " + value;
-                                                            }
+                                                        formatter: function(value, {
+                                                            seriesIndex,
+                                                            dataPointIndex,
+                                                            w
+                                                        }) {
+                                                            return `Sensor ${seriesIndex + 1}: ${value} data`;
                                                         }
                                                     }
                                                 }
                                             });
-                                
+
                                             chart.render();
-                                
-                                            // Fungsi untuk memperbarui chart berdasarkan rentang waktu
-                                            const updateChart = (range) => {
-                                                const {
-                                                    categories,
-                                                    byteData,
-                                                    slave1Data,
-                                                    slave2Data,
-                                                    slave3Data,
-                                                    TotalDataTerkirim
-                                                } = getDataByRange(range);
-                                                chart.updateOptions({
-                                                    xaxis: { categories },
-                                                    series: [
-                                                        { name: "Total Data Terkirim", data: TotalDataTerkirim, type: 'line' }, // Total Data series
-                                                        { name: "Master", data: byteData },
-                                                        { name: "Slave 1", data: slave1Data },
-                                                        { name: "Slave 2", data: slave2Data },
-                                                        { name: "Slave 3", data: slave3Data }
-                                                    ]
+
+                                            // Fetch data dari API
+                                            fetch('/api/soil-moisture-data')
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    const series = [];
+                                                    const timestamps = []; // Array untuk menyimpan waktu
+
+                                                    data.forEach(node => {
+                                                        let nodeSeries = {
+                                                            name: node.node_type,
+                                                            data: []
+                                                        };
+
+                                                        node.data.forEach(sensorData => {
+                                                            // Menambahkan waktu ke kategori (x-axis)
+                                                            timestamps.push(...sensorData.timestamps);
+
+                                                            // Menambahkan jumlah data yang diterima per waktu
+                                                            nodeSeries.data.push(...sensorData.data_count);
+                                                        });
+
+                                                        series.push(nodeSeries);
+                                                    });
+
+                                                    // Menghapus duplikat waktu (timestamps)
+                                                    const uniqueTimestamps = [...new Set(timestamps)];
+
+                                                    // Update chart dengan data yang diterima
+                                                    chart.updateOptions({
+                                                        xaxis: {
+                                                            categories: uniqueTimestamps // Menambahkan waktu sebagai kategori
+                                                        },
+                                                        series: series
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    console.error('Error fetching soil moisture data:', error);
                                                 });
-                                            };
-                                
-                                            // Event Listener untuk Dropdown Rentang Waktu
-                                            document.querySelectorAll('.dropdown-item').forEach(item => {
-                                                item.addEventListener('click', (e) => {
-                                                    const range = e.target.getAttribute('data-value');
-                                                    updateChart(range);
-                                                });
-                                            });
-                                
-                                            // Muat Data Default (Per Jam)
-                                            updateChart('hourly');
                                         });
                                     </script>
+
+
                                     <!-- End Line Chart -->
                                 </div>
-                                
-                                
-                                
+
+
+
                             </div>
 
                         </div><!-- End Reports -->
@@ -563,23 +531,8 @@
                         <div class="card-body pb-4">
                             <h5 class="card-title">Node Status <span></h5>
                             <div class="node-status">
-                                <ul class="list-group">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Master Node
-                                        <span class="badge bg-success">Online</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Slave 1
-                                        <span class="badge bg-success">Online</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Slave 2
-                                        <span class="badge bg-danger">Offline</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Slave 3
-                                        <span class="badge bg-success">Online</span>
-                                    </li>
+                                <ul id="nodeStatusList" class="list-group">
+                                    <!-- Data akan diupdate secara otomatis -->
                                 </ul>
                             </div>
                         </div>
@@ -610,33 +563,35 @@
                     </style>
 
                     <script>
-                        const nodeStatus = {
-                            master: true,
-                            slave1: true,
-                            slave2: false,
-                            slave3: true
-                        };
+                        async function fetchNodeStatus() {
+                            try {
+                                const response = await fetch('/node-status');
+                                const data = await response.json();
 
-                        document.addEventListener("DOMContentLoaded", () => {
-                            const statuses = {
-                                master: document.querySelector(".list-group-item:nth-child(1) .badge"),
-                                slave1: document.querySelector(".list-group-item:nth-child(2) .badge"),
-                                slave2: document.querySelector(".list-group-item:nth-child(3) .badge"),
-                                slave3: document.querySelector(".list-group-item:nth-child(4) .badge")
-                            };
+                                const list = document.getElementById('nodeStatusList');
+                                list.innerHTML = ''; // Kosongkan list sebelum mengisi ulang
 
-                            for (const node in nodeStatus) {
-                                if (nodeStatus[node]) {
-                                    statuses[node].innerText = "Online";
-                                    statuses[node].classList.remove("bg-danger");
-                                    statuses[node].classList.add("bg-success");
-                                } else {
-                                    statuses[node].innerText = "Offline";
-                                    statuses[node].classList.remove("bg-success");
-                                    statuses[node].classList.add("bg-danger");
-                                }
+                                data.forEach(node => {
+                                    const listItem = document.createElement('li');
+                                    listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                                    listItem.innerHTML = `
+                                        ${node.node_type}
+                                        <span class="badge ${node.online === 'Ya' ? 'bg-success' : 'bg-danger'}">
+                                            ${node.online === 'Ya' ? 'Online' : 'Offline'}
+                                        </span>
+                                    `;
+                                    list.appendChild(listItem);
+                                });
+                            } catch (error) {
+                                console.error('Error fetching node status:', error);
                             }
-                        });
+                        }
+
+                        // Refresh data setiap 5 detik
+                        setInterval(fetchNodeStatus, 5000);
+
+                        // Panggil pertama kali saat halaman dimuat
+                        fetchNodeStatus();
                     </script>
 
                     <div class="card">
