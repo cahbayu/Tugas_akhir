@@ -15,11 +15,13 @@ class Log extends Model
 
     protected $fillable = [
         'node_id',
-        'action',
+        'action',  
         'node_type',
-        'data_byte',  // Tambahkan ini
+        'payload_size',
+        'expected_data',
+        'received_data',
         'created_at',
-        'updated_at',
+        'updated_at'
     ];
 
     public function node()

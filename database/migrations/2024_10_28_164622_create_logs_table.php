@@ -9,26 +9,25 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
 {
-    Schema::create('logs', function (Blueprint $table) {
-        $table->id('log_id'); // Primary Key
-        $table->unsignedBigInteger('node_id'); // Kolom untuk foreign key
-        $table->string('action', 255); // Deskripsi aktivitas
-        $table->string('node_type', 10); // Kolom untuk tipe node
-        $table->integer('data_byte'); // Menyimpan ukuran byte yang dikirim
-        $table->timestamps(); // Kolom created_at dan updated_at
-
-        // Tentukan foreign key yang mengacu pada node_id
-        $table->foreign('node_id')->references('node_id')->on('nodes')->onDelete('cascade');
-    });            
+    Schema::table('logs', function (Blueprint $table) {
+        $table->dropColumn(['action', 'data_byte']); // Hapus kolom lama
+        
+        // Tambah kolom baru
+        $table->integer('payload_size')->after('node_type');
+        $table->integer('expected_data')->nullable()->after('payload_size');
+        $table->integer('received_data')->nullable()->after('expected_data');
+    });
 }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('logs');
-    }
+public function down()
+{
+    Schema::table('logs', function (Blueprint $table) {
+        $table->string('action')->after('node_id');
+        $table->integer('data_byte')->nullable()->after('node_type');
+        
+        $table->dropColumn(['payload_size', 'expected_data', 'received_data']);
+    });
+}
 };
