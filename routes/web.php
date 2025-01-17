@@ -27,6 +27,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/users-profile', [UserController::class, 'profile'])->name('users-profile');  // Show user profile
 
     Route::get('/index', [DataController::class, 'index'])->name('index');
+
+    Route::get('/tables-slave1', [DataController::class, 'tables_slave1'])->name('index');
+
+    Route::get('/tables-slave2', [DataController::class, 'tables_slave2'])->name('index');
+
+    Route::get('/tables-slave3', [DataController::class, 'tables_slave3'])->name('index');
+
+    Route::get('/tables-data', [DataController::class, 'tables_data'])->name('index');
 });
 
 // Update profile
@@ -36,24 +44,15 @@ Route::middleware('auth')->group(function () {
 
     // Route to handle the profile update (PUT request)
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/updatePassword', [ProfileController::class, 'updatePassowrd'])->name('profile.updatePassword');
+
 });
 
 Route::get('/pages-login', function () {
     return view('pages-login');
 });
 
-Route::get('/tables-data', function () {
-    return view('tables-data');
-});
-Route::get('/tables-slave1', function () {
-    return view('tables-slave1');
-});
-Route::get('/tables-slave2', function () {
-    return view('tables-slave2');
-});
-Route::get('/tables-slave3', function () {
-    return view('tables-slave3');
-});
+
 Route::get('/charts-apexcharts', function () {
     return view('charts-apexcharts');
 });
@@ -75,7 +74,7 @@ Route::get('/pages-register', function () {
 
 //Api
 //InputData
-Route::post('/api-inputdata', [NodeController::class, 'receiveData'])->name('api.input') ;
+Route::post('/api-inputdata', [NodeController::class, 'receiveData'])->name('api.input');
 
 
 Route::get('/node-status', [DataController::class, 'getNodeStatus']);

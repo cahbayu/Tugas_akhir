@@ -50,7 +50,7 @@ class UserController extends Controller
             'name' => $credentials['name'],
             'email' => $credentials['email'],
             'password' => bcrypt($credentials['password']),
-            
+
         ]);
 
         auth()->login($user);
@@ -58,6 +58,7 @@ class UserController extends Controller
         return redirect()->intended('/index');
     }
 
+    
 
 
     public function profile()

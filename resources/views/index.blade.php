@@ -65,12 +65,12 @@
 
                     <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#"
                         data-bs-toggle="dropdown">
-                        <span class="d-none d-md-block dropdown-toggle ps-2">Awal Cahyo B.A</span>
+                        <span class="d-none d-md-block dropdown-toggle ps-2">{{auth()->user()->name}}</span>
                     </a><!-- End Profile Iamge Icon -->
 
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
                         <li class="dropdown-header">
-                            <h6>Awal Cahyo B.A</h6>
+                            <h6>{{auth()->user()->name}}</h6>
                             <span>User</span>
                         </li>
                         <li>
@@ -233,7 +233,10 @@
 
                                     <!-- Garis pemisah -->
                                     <hr>
-
+                                    <div class="mt-3">
+                                        <h6 id="total-revenue">Rata-rata semua kelembaban: {{ $totalAverageHumidity }}%
+                                        </h6>
+                                    </div>
 
                                 </div>
                             </div>
@@ -253,7 +256,7 @@
 
                                         <div class="ps-3" id="revenue-data">
                                             <!-- Data revenue akan ditampilkan di sini -->
-                                            @foreach ($nodess as $node)
+                                            @foreach ($nodes as $node)
                                                 <h6 id="master-revenue">{{ $node->node_type }} :
                                                     {{ $node->logs->count() }}</h6>
                                             @endforeach
@@ -265,7 +268,7 @@
 
                                     <!-- Bagian total data -->
                                     <div class="mt-3">
-                                        <h6 id="total-revenue">Total: 3660</h6>
+                                        <h6 id="total-revenue">Total: {{ $logTotal }}</h6>
                                     </div>
                                 </div>
 
@@ -284,10 +287,10 @@
                                         </div>
 
                                         <div class="ps-3" id="packetloss-data">
-                                            <!-- Data packet loss akan ditampilkan di sini -->
                                             @foreach ($packetLossData as $nodeType => $packetLoss)
-                                                <h6 id="{{ strtolower($nodeType) }}-packetloss">{{ $nodeType }}:
-                                                    {{ $packetLoss }}</h6>
+                                                <h6 id="{{ strtolower($nodeType) }}-packetloss">
+                                                    {{ $nodeType }}: {{ $packetLoss }}
+                                                </h6>
                                             @endforeach
                                         </div>
                                     </div>
@@ -295,12 +298,14 @@
                                     <!-- Garis pemisah -->
                                     <hr>
 
-                                    <!-- Bagian total packetloss -->
+                                    <!-- Bagian total packet loss -->
                                     <div class="mt-3">
-                                        <h6 id="total-packetloss">Total Packetloss: {{ $totalPacketLoss }}%
-                                            ({{ $totalLogs }})</h6>
+                                        <h6 id="total-packetloss">
+                                            Total Packetloss: {{ $totalPacketLoss }}%
+                                        </h6>
                                     </div>
                                 </div>
+
 
 
                             </div>
@@ -426,98 +431,37 @@
                         <!-- End Reports -->
 
 
+
                         <!-- Recent Sales -->
                         <div class="col-12">
                             <div class="card recent-sales overflow-auto">
                                 <div class="card-body">
-                                    <h5 class="card-title">Data Kelembaban Sensor <span id="slave-title">
-
-                                            <table class="table datatable">
-                                                <thead>
-                                                    <tr>
-                                                        <th><b>N</b>O</th>
-                                                        <th>Nama sensor</th>
-                                                        <th>Kelembaban</th>
-                                                        <th data-type="date" data-format="YYYY/DD/MM">Start Date</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- Default data for Slave 1 -->
-                                                    <tr>
-                                                        <td>1</td>
-                                                        <td>Sensor 1</td>
-                                                        <td>60%</td>
-                                                        <td>2005/02/11</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>2</td>
-                                                        <td>Sensor 2</td>
-                                                        <td>60%</td>
-                                                        <td>2005/02/11</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>3</td>
-                                                        <td>Sensor 3</td>
-                                                        <td>60%</td>
-                                                        <td>2005/02/11</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>4</td>
-                                                        <td>Sensor 4</td>
-                                                        <td>60%</td>
-                                                        <td>2005/02/11</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>5</td>
-                                                        <td>Sensor 5</td>
-                                                        <td>60%</td>
-                                                        <td>2005/02/11</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>6</td>
-                                                        <td>Sensor 6</td>
-                                                        <td>60%</td>
-                                                        <td>2005/02/11</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>7</td>
-                                                        <td>Sensor 7</td>
-                                                        <td>60%</td>
-                                                        <td>2005/02/11</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>8</td>
-                                                        <td>Sensor 8</td>
-                                                        <td>60%</td>
-                                                        <td>2005/02/11</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>9</td>
-                                                        <td>Sensor 9</td>
-                                                        <td>60%</td>
-                                                        <td>2005/02/11</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>10</td>
-                                                        <td>Sensor 10</td>
-                                                        <td>60%</td>
-                                                        <td>2005/02/11</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>11</td>
-                                                        <td>Sensor 11</td>
-                                                        <td>60%</td>
-                                                        <td>2005/02/11</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>12</td>
-                                                        <td>Sensor 12</td>
-                                                        <td>60%</td>
-                                                        <td>2005/02/11</td>
-                                                    </tr>
-
-                                                </tbody>
-                                            </table>
+                                    <h5 class="card-title">Data Kelembaban Sensor</h5>
+                                    <table class="table datatable">
+                                        <thead>
+                                            <tr>
+                                                <th>NO</th>
+                                                <th>Nama Sensor</th>
+                                                <th>Kelembaban</th>
+                                                <th>Tanggal & Waktu</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse ($latestSensorData as $index => $data)
+                                                <tr>
+                                                    <td>{{ $index + 1 }}</td>
+                                                    <td>{{ $data['sensor_name'] }}</td>
+                                                    <td>{{ $data['moisture_value'] }}%</td>
+                                                    <td>{{ $data['created_at'] }}</td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="4" class="text-center">Tidak ada data sensor
+                                                        terbaru.</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -596,13 +540,18 @@
 
                     <div class="card">
                         <div class="card-body pb-0">
-                            <h5 class="card-title">paket data</h5>
-                            <!-- Mengurangi tinggi minimum dan mengubah radius -->
+                            <h5 class="card-title">Paket Data</h5>
                             <div id="trafficChart" style="min-height: 300px; margin: 20px 0;" class="echart"></div>
-                            <!-- Menambahkan margin -->
-
                             <script>
                                 document.addEventListener("DOMContentLoaded", () => {
+                                    const packetData = @json($packetData);
+
+                                    // Format data untuk ECharts
+                                    const chartData = packetData.map(item => ({
+                                        value: item.total_payload_size,
+                                        name: `${item.node_name}: ${item.total_payload_size} B`
+                                    }));
+
                                     echarts.init(document.querySelector("#trafficChart")).setOption({
                                         tooltip: {
                                             trigger: 'item'
@@ -612,45 +561,30 @@
                                             left: 'center'
                                         },
                                         series: [{
-                                            name: 'Paket data',
+                                            name: 'Paket Data',
                                             type: 'pie',
-                                            radius: ['70%', '45%'], // Mengubah radius untuk memberikan lebih banyak jarak
+                                            radius: ['70%', '45%'],
                                             avoidLabelOverlap: false,
                                             label: {
-                                                show: false, // Menyembunyikan label di luar lingkaran
+                                                show: false,
                                                 position: 'outside'
                                             },
                                             emphasis: {
                                                 label: {
-                                                    show: false // Menyembunyikan label saat pie dihover
+                                                    show: false
                                                 }
                                             },
                                             labelLine: {
-                                                show: false // Menyembunyikan garis label di luar lingkaran
+                                                show: false
                                             },
-                                            data: [{
-                                                    value: 80,
-                                                    name: 'Master: 80 B'
-                                                },
-                                                {
-                                                    value: 70,
-                                                    name: 'Slave 1: 70 B'
-                                                },
-                                                {
-                                                    value: 60,
-                                                    name: 'Slave 2: 60 B'
-                                                },
-                                                {
-                                                    value: 60,
-                                                    name: 'Slave 3: 60 B'
-                                                }
-                                            ]
+                                            data: chartData
                                         }]
                                     });
                                 });
                             </script>
                         </div>
                     </div>
+
                     <!-- End Soil Moisture Levels -->
 
                 </div><!-- End Right side columns -->

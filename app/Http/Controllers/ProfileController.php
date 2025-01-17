@@ -1,12 +1,16 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+
 
 class ProfileController extends Controller
 {
     // Show the profile edit form
-    
+
 
     // Handle the profile update
     public function update(Request $request)
@@ -34,5 +38,27 @@ class ProfileController extends Controller
         // Redirect with success message
         return redirect()->back()->with('success', 'Profile updated successfully');
     }
-}
 
+    public function updatePassowrd(Request $request)
+    {
+        $request->validate([
+            "password" => "required",
+            "newpassword" => "required|min:4",
+            "renewpassword" => "required|same:newpassword",
+        ]);
+
+
+        // Update the user profile in the database
+        if (!Hash::check($request->currentPassword, auth()->user()->password)) {
+            dd($request->currentPassword);
+            return redirect()->back()->with('error', 'Current password is incorrect');
+        }
+
+        $user = auth()->user();
+        $user->update([
+            'password' => Hash::make($request->newPassword),
+        ]);
+        // Redirect with success message
+        return redirect()->back()->with('success', 'Password updated successfully');
+    }
+}

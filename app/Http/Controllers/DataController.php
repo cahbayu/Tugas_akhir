@@ -16,57 +16,443 @@ class DataController extends Controller
 
     public function index()
     {
-        $nodess = Node::all();
+        // Ambil semua node beserta relasinya
+        $nodes = Node::with(['sensors.soilMoistureData', 'logs'])->get();
 
-        // Ambil semua node beserta sensor dan data kelembaban
-        $nodes = Node::with(['sensors.soilMoistureData' => function ($query) {
-            $query->where('created_at', '>=', now()->subHour())  // Ambil data dalam 1 jam terakhir
-                  ->orderBy('created_at', 'desc');
-        }])->get();
-
-        // Inisialisasi array untuk menyimpan rata-rata kelembaban per node
+        // Inisialisasi data yang dibutuhkan
         $nodeHumidityData = [];
         $packetLossData = [];
-        $totalLogs = 0; // Inisialisasi variabel totalLogs
-        $totalSoilMoistureData = 0;
+        $sensorData = [];
+        $packetData = [];
+        $latestSensorData = []; // Data terbaru untuk setiap sensor
+        $totalExpectedData = 0; // Total kumulatif expected data
+        $totalReceivedData = 0; // Total kumulatif received data
+        $totalLogs = 0; // Total log count
+        $totalSoilMoistureData = 0; // Total soil moisture data count
+        $totalMoistureValue = 0; // Total moisture value
 
         foreach ($nodes as $node) {
-            $nodeLogsCount = $node->logs()->where('created_at', '>=', now()->subHour())->count();  // Jumlah log dalam 1 jam
+            // Hitung jumlah log dan payload size dalam 1 jam terakhir
+            $nodeLogs = $node->logs()->where('created_at', '>=', now()->subHour())->get();
+            $nodeLogsCount = $nodeLogs->count();
+            $nodePayloadSize = $nodeLogs->sum('payload_size');
             $totalLogs += $nodeLogsCount;
 
-            $totalSoilMoistureData = 0;
-            $sensorCount = 0;
+            // Data packet untuk node ini
+            $packetData[] = [
+                'node_name' => $node->node_type,
+                'total_payload_size' => $nodePayloadSize,
+            ];
 
-            // Hitung jumlah data soil moisture dalam 1 jam
+            // Hitung packet loss berdasarkan log
+            $expectedData = $nodeLogs->sum('expected_data');
+            $receivedData = $nodeLogs->sum('received_data');
+            $totalExpectedData += $expectedData;
+            $totalReceivedData += $receivedData;
+
+            $packetLoss = $expectedData > 0
+                ? (($expectedData - $receivedData) / $expectedData) * 100
+                : 0;
+
+            $packetLossData[$node->node_type] = round($packetLoss, 2) . '%';
+
+            // Hitung rata-rata kelembaban untuk node ini
+            $nodeMoistureValue = 0;
+            $nodeSoilMoistureCount = 0;
+
             foreach ($node->sensors as $sensor) {
-                $soilMoistureCount = $sensor->soilMoistureData()->where('created_at', '>=', now()->subHour())->count();
-                $totalSoilMoistureData += $soilMoistureCount;
-                $sensorCount++;
+                $sensorMoistureData = $sensor->soilMoistureData()->where('created_at', '>=', now()->subHour())->get();
+
+                foreach ($sensorMoistureData as $data) {
+                    $nodeMoistureValue += $data->moisture_value;
+                    $nodeSoilMoistureCount++;
+                    $sensorData[] = [
+                        'sensor_name' => $sensor->sensor_name,
+                        'moisture_value' => $data->moisture_value,
+                        'start_date' => $data->created_at->format('Y/m/d'),
+                    ];
+                }
+
+                // Ambil data kelembaban terbaru dari setiap sensor
+                $latestData = $sensor->soilMoistureData()->latest('created_at')->first();
+                if ($latestData) {
+                    $latestSensorData[] = [
+                        'sensor_name' => $sensor->sensor_name,
+                        'moisture_value' => $latestData->moisture_value,
+                        'created_at' => $latestData->created_at->format('Y/m/d H:i:s'),
+                    ];
+                }
             }
 
-            // Hitung Packet Loss
-            if ($nodeLogsCount > 0) {
-                $packetLoss = (($nodeLogsCount - $totalSoilMoistureData) / $nodeLogsCount) * 100;
-            } else {
-                $packetLoss = 0;
-            }
+            $totalMoistureValue += $nodeMoistureValue;
+            $totalSoilMoistureData += $nodeSoilMoistureCount;
 
-            // Simpan hasil packet loss per node
-            $packetLossData[$node->node_type] = round($packetLoss, 2) . '% (' . $nodeLogsCount . ')';
+            $averageHumidity = $nodeSoilMoistureCount > 0
+                ? $nodeMoistureValue / $nodeSoilMoistureCount
+                : null;
+
+            $nodeHumidityData[$node->node_type] = $averageHumidity ? round($averageHumidity, 2) : 'N/A';
         }
 
-        // Hitung total packet loss untuk semua node
-        $totalPacketLoss = ($totalLogs > 0) ? round((($totalLogs - $totalSoilMoistureData) / $totalLogs) * 100, 2) : 0;
+        // Hitung total rata-rata kelembaban
+        $nodeCount = count(array_filter($nodeHumidityData, 'is_numeric'));
+        $totalAverageHumidity = $nodeCount > 0
+            ? round($totalMoistureValue / $totalSoilMoistureData, 2)
+            : 'N/A';
 
-        return view('index', compact('nodeHumidityData', 'nodes', 'nodess', 'packetLossData', 'totalPacketLoss', 'totalLogs'));
+        // Hitung total packet loss berdasarkan kumulasi expected dan received data
+        $totalPacketLoss = $totalExpectedData > 0
+            ? round((($totalExpectedData - $totalReceivedData) / $totalExpectedData) * 100, 2)
+            : 0;
+
+        $logTotal = Log::count();
+
+        return view('index', compact(
+            'nodeHumidityData',
+            'nodes',
+            'packetLossData',
+            'totalPacketLoss',
+            'totalLogs',
+            'totalAverageHumidity',
+            'sensorData',
+            'packetData',
+            'latestSensorData', // Tambahan data terbaru untuk setiap sensor
+            'logTotal'
+        ));
     }
+
+
+    public function tables_slave1()
+    {
+        // Ambil Node 1 berdasarkan node_type dengan huruf kecil tanpa spasi
+        $node = Node::with(['sensors.soilMoistureData', 'logs'])->where('node_type', 'slave1')->first();
+
+        if (!$node) {
+            return view('tables-slave1', [
+                'averageHumidity' => 'N/A',
+                'totalPayload' => 'N/A',
+                'logTotal' => 0,
+                'packetLoss' => 'N/A',
+                'lineChartData' => [],
+                'packetLossData' => [],
+                'latestSensorData' => [], // Tambahkan variabel ini
+            ]);
+        }
+
+        // Hitung rata-rata kelembaban
+        $nodeMoistureValue = 0;
+        $nodeSoilMoistureCount = 0;
+
+        foreach ($node->sensors as $sensor) {
+            $sensorMoistureData = $sensor->soilMoistureData()->where('created_at', '>=', now()->subHour())->get();
+            foreach ($sensorMoistureData as $data) {
+                $nodeMoistureValue += $data->moisture_value;
+                $nodeSoilMoistureCount++;
+            }
+        }
+
+        $averageHumidity = $nodeSoilMoistureCount > 0
+            ? round($nodeMoistureValue / $nodeSoilMoistureCount, 2)
+            : 'N/A';
+
+        // Hitung total payload data
+        $nodeLogs = $node->logs()->where('created_at', '>=', now()->subHour())->get();
+        $totalPayload = $nodeLogs->sum('payload_size');
+
+        // Hitung jumlah log
+        $logTotal = $nodeLogs->count();
+
+        // Hitung packet loss
+        $expectedData = $nodeLogs->sum('expected_data');
+        $receivedData = $nodeLogs->sum('received_data');
+        $packetLoss = $expectedData > 0
+            ? round((($expectedData - $receivedData) / $expectedData) * 100, 2)
+            : 0;
+
+        // Siapkan data untuk line chart
+        $lineChartData = $nodeLogs->groupBy(function ($log) {
+            return $log->created_at->format('H:i');
+        })->map(function ($group) {
+            return $group->sum('payload_size');
+        })->sortKeys();
+
+        // Siapkan data untuk packet loss
+        $packetLossData = $nodeLogs->groupBy(function ($log) {
+            return $log->created_at->format('H:i');
+        })->map(function ($group) {
+            $sent = $group->sum('expected_data');
+            $lost = $group->sum('expected_data') - $group->sum('received_data');
+            return [
+                'sent' => $sent,
+                'lost' => max($lost, 0),
+            ];
+        })->sortKeys();
+
+        // Ambil data sensor terbaru
+        $latestSensorData = [];
+        foreach ($node->sensors as $sensor) {
+            $latestData = $sensor->soilMoistureData()->latest('created_at')->first();
+            if ($latestData) {
+                $latestSensorData[] = [
+                    'sensor_name' => $sensor->sensor_name,
+                    'moisture_value' => $latestData->moisture_value,
+                    'created_at' => $latestData->created_at->format('Y-m-d H:i:s'),
+                ];
+            }
+        }
+
+        return view('tables-slave1', compact(
+            'averageHumidity',
+            'totalPayload',
+            'logTotal',
+            'packetLoss',
+            'lineChartData',
+            'packetLossData',
+            'latestSensorData'
+        ));
+    }
+
+
+
+
+
+
+    public function tables_slave2()
+    {
+        // Ambil Node 1 berdasarkan node_type dengan huruf kecil tanpa spasi
+        $node = Node::with(['sensors.soilMoistureData', 'logs'])->where('node_type', 'slave2')->first();
+
+        if (!$node) {
+            return view('tables-slave2', [
+                'averageHumidity' => 'N/A',
+                'totalPayload' => 'N/A',
+                'logTotal' => 0,
+                'packetLoss' => 'N/A',
+                'lineChartData' => [],
+                'packetLossData' => [],
+                'latestSensorData' => [], // Tambahkan variabel ini
+            ]);
+        }
+
+        // Hitung rata-rata kelembaban
+        $nodeMoistureValue = 0;
+        $nodeSoilMoistureCount = 0;
+
+        foreach ($node->sensors as $sensor) {
+            $sensorMoistureData = $sensor->soilMoistureData()->where('created_at', '>=', now()->subHour())->get();
+            foreach ($sensorMoistureData as $data) {
+                $nodeMoistureValue += $data->moisture_value;
+                $nodeSoilMoistureCount++;
+            }
+        }
+
+        $averageHumidity = $nodeSoilMoistureCount > 0
+            ? round($nodeMoistureValue / $nodeSoilMoistureCount, 2)
+            : 'N/A';
+
+        // Hitung total payload data
+        $nodeLogs = $node->logs()->where('created_at', '>=', now()->subHour())->get();
+        $totalPayload = $nodeLogs->sum('payload_size');
+
+        // Hitung jumlah log
+        $logTotal = $nodeLogs->count();
+
+        // Hitung packet loss
+        $expectedData = $nodeLogs->sum('expected_data');
+        $receivedData = $nodeLogs->sum('received_data');
+        $packetLoss = $expectedData > 0
+            ? round((($expectedData - $receivedData) / $expectedData) * 100, 2)
+            : 0;
+
+        // Siapkan data untuk line chart
+        $lineChartData = $nodeLogs->groupBy(function ($log) {
+            return $log->created_at->format('H:i');
+        })->map(function ($group) {
+            return $group->sum('payload_size');
+        })->sortKeys();
+
+        // Siapkan data untuk packet loss
+        $packetLossData = $nodeLogs->groupBy(function ($log) {
+            return $log->created_at->format('H:i');
+        })->map(function ($group) {
+            $sent = $group->sum('expected_data');
+            $lost = $group->sum('expected_data') - $group->sum('received_data');
+            return [
+                'sent' => $sent,
+                'lost' => max($lost, 0),
+            ];
+        })->sortKeys();
+
+        // Ambil data sensor terbaru
+        $latestSensorData = [];
+        foreach ($node->sensors as $sensor) {
+            $latestData = $sensor->soilMoistureData()->latest('created_at')->first();
+            if ($latestData) {
+                $latestSensorData[] = [
+                    'sensor_name' => $sensor->sensor_name,
+                    'moisture_value' => $latestData->moisture_value,
+                    'created_at' => $latestData->created_at->format('Y-m-d H:i:s'),
+                ];
+            }
+        }
+
+        return view('tables-slave2', compact(
+            'averageHumidity',
+            'totalPayload',
+            'logTotal',
+            'packetLoss',
+            'lineChartData',
+            'packetLossData',
+            'latestSensorData'
+        ));
+    }
+
+    public function tables_slave3()
+    {
+        // Ambil Node 1 berdasarkan node_type dengan huruf kecil tanpa spasi
+        $node = Node::with(['sensors.soilMoistureData', 'logs'])->where('node_type', 'slave3')->first();
+
+        if (!$node) {
+            return view('tables-slave3', [
+                'averageHumidity' => 'N/A',
+                'totalPayload' => 'N/A',
+                'logTotal' => 0,
+                'packetLoss' => 'N/A',
+                'lineChartData' => [],
+                'packetLossData' => [],
+                'latestSensorData' => [], // Tambahkan variabel ini
+            ]);
+        }
+
+        // Hitung rata-rata kelembaban
+        $nodeMoistureValue = 0;
+        $nodeSoilMoistureCount = 0;
+
+        foreach ($node->sensors as $sensor) {
+            $sensorMoistureData = $sensor->soilMoistureData()->where('created_at', '>=', now()->subHour())->get();
+            foreach ($sensorMoistureData as $data) {
+                $nodeMoistureValue += $data->moisture_value;
+                $nodeSoilMoistureCount++;
+            }
+        }
+
+        $averageHumidity = $nodeSoilMoistureCount > 0
+            ? round($nodeMoistureValue / $nodeSoilMoistureCount, 2)
+            : 'N/A';
+
+        // Hitung total payload data
+        $nodeLogs = $node->logs()->where('created_at', '>=', now()->subHour())->get();
+        $totalPayload = $nodeLogs->sum('payload_size');
+
+        // Hitung jumlah log
+        $logTotal = $nodeLogs->count();
+
+        // Hitung packet loss
+        $expectedData = $nodeLogs->sum('expected_data');
+        $receivedData = $nodeLogs->sum('received_data');
+        $packetLoss = $expectedData > 0
+            ? round((($expectedData - $receivedData) / $expectedData) * 100, 2)
+            : 0;
+
+        // Siapkan data untuk line chart
+        $lineChartData = $nodeLogs->groupBy(function ($log) {
+            return $log->created_at->format('H:i');
+        })->map(function ($group) {
+            return $group->sum('payload_size');
+        })->sortKeys();
+
+        // Siapkan data untuk packet loss
+        $packetLossData = $nodeLogs->groupBy(function ($log) {
+            return $log->created_at->format('H:i');
+        })->map(function ($group) {
+            $sent = $group->sum('expected_data');
+            $lost = $group->sum('expected_data') - $group->sum('received_data');
+            return [
+                'sent' => $sent,
+                'lost' => max($lost, 0),
+            ];
+        })->sortKeys();
+
+        // Ambil data sensor terbaru
+        $latestSensorData = [];
+        foreach ($node->sensors as $sensor) {
+            $latestData = $sensor->soilMoistureData()->latest('created_at')->first();
+            if ($latestData) {
+                $latestSensorData[] = [
+                    'sensor_name' => $sensor->sensor_name,
+                    'moisture_value' => $latestData->moisture_value,
+                    'created_at' => $latestData->created_at->format('Y-m-d H:i:s'),
+                ];
+            }
+        }
+
+        return view('tables-slave3', compact(
+            'averageHumidity',
+            'totalPayload',
+            'logTotal',
+            'packetLoss',
+            'lineChartData',
+            'packetLossData',
+            'latestSensorData'
+        ));
+    }
+
+    public function tables_data()
+    {
+
+        // Ambil semua node beserta data terkait
+        $nodes = Node::with(['logs'])->get();
+        $logs = Log::all();
+
+        $nodeData = [];
+        $totalPayload = 0;
+        $totalLogs = 0;
+        $totalPacketLoss = 0;
+        $totalExpectedData = 0;
+        $totalReceivedData = 0;
+
+        foreach ($nodes as $node) {
+            // Ambil data yang diperlukan per node untuk 1 jam terakhir
+            $nodePayload = $node->logs()->where('created_at', '>=', now()->subHour())->sum('payload_size');
+            $nodeLogCount = $node->logs()->where('created_at', '>=', now()->subHour())->count();
+            $nodeExpectedData = $node->logs()->where('created_at', '>=', now()->subHour())->sum('expected_data');
+            $nodeReceivedData = $node->logs()->where('created_at', '>=', now()->subHour())->sum('received_data');
+            $nodePacketLoss = $nodeReceivedData > 0
+                ? round((1 - ($nodeReceivedData / $nodeExpectedData)) * 100, 2)
+                : 0;
+
+            $nodeData[] = [
+                'name' => $node->node_type,
+                'payload_size' => $nodePayload,
+                'log_count' => $nodeLogCount,
+                'packet_loss' => $nodePacketLoss,
+                'expected_data' => $nodeExpectedData,
+                'received_data' => $nodeReceivedData,
+            ];
+
+            // Total
+            $totalPayload += $nodePayload;
+            $totalLogs += $nodeLogCount;
+            $totalPacketLoss += $nodePacketLoss;
+            $totalExpectedData += $nodeExpectedData;
+            $totalReceivedData += $nodeReceivedData;
+        }
+
+        $averagePayload = count($nodeData) > 0
+            ? round($totalPayload / count($nodeData), 2)
+            : 0;
+
+        return view('tables-data', compact('nodeData', 'logs', 'totalPayload', 'totalLogs', 'totalPacketLoss', 'totalExpectedData', 'totalReceivedData', 'averagePayload'));
+    }
+
+
 
     public function getSoilMoistureData()
     {
         // Ambil data soil moisture untuk setiap node dalam 6 jam terakhir
         $nodes = Node::with(['sensors.soilMoistureData' => function ($query) {
             $query->where('created_at', '>=', Carbon::now()->subHours(6))  // Ambil data dalam 6 jam terakhir
-                  ->orderBy('created_at', 'asc');
+                ->orderBy('created_at', 'asc');
         }])->get();
 
         // Siapkan array untuk menyimpan data yang akan dikirimkan ke front-end
@@ -108,11 +494,4 @@ class DataController extends Controller
         $nodess = Node::all();
         return response()->json($nodess);
     }
-
-
-
-
-
-
-
 }
