@@ -138,12 +138,12 @@
                 </a>
                 <ul id="tables-nav" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
                     <li>
-                        <a href="tables-slave1" class="active">
+                        <a href="tables-slave1" >
                             <i class="bi bi-circle"></i><span>Slave1</span>
                         </a>
                     </li>
                     <li>
-                        <a href="tables-slave2">
+                        <a href="tables-slave2" class="active">
                             <i class="bi bi-circle"></i><span>Slave2</span>
                         </a>
                     </li>
@@ -190,12 +190,12 @@
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Data Slave 1</h1>
+            <h1>Data Slave 2</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index">Home</a></li>
                     <li class="breadcrumb-item">Tables</li>
-                    <li class="breadcrumb-item active">Slave 1</li>
+                    <li class="breadcrumb-item active">Slave 2</li>
                 </ol>
             </nav>
         </div><!-- End Page Title -->
@@ -205,7 +205,7 @@
                 <div class="col-xxl-3 col-md-6">
                     <div class="card info-card sales-card">
                         <div class="card-body">
-                            <h5 class="card-title">Kelembaban <span id="data-title">| Slave 1</span></h5>
+                            <h5 class="card-title">Kelembaban <span id="data-title">| Slave 2</span></h5>
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
@@ -213,7 +213,7 @@
                                 </div>
                                 <div class="ps-1" id="humidity-data">
                                     <h6 id="slave1-humidity">
-                                        Slave 1 : {{ $averageHumidity !== 'N/A' ? $averageHumidity . '%' : 'N/A' }}
+                                        Slave 2 : {{ $averageHumidity !== 'N/A' ? $averageHumidity . '%' : 'N/A' }}
                                     </h6>
                                 </div>
                             </div>
@@ -233,7 +233,7 @@
                                 </div>
                                 <div class="ps-1" id="data-packet">
                                     <h6 id="slave1-packet">
-                                        Slave 1 : {{ $totalPayload !== 'N/A' ? $totalPayload . ' B' : 'N/A' }}
+                                        Slave 2 : {{ $totalPayload !== 'N/A' ? $totalPayload . ' B' : 'N/A' }}
                                     </h6>
                                 </div>
                             </div>
@@ -244,7 +244,7 @@
                 <div class="col-xxl-3 col-md-6">
                     <div class="card info-card revenue-card">
                         <div class="card-body mt-4">
-                            <h5 class="card-title">Log <span id="data-title">| Slave 1</span></h5>
+                            <h5 class="card-title">Log <span id="data-title">| Slave 2</span></h5>
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
@@ -253,7 +253,7 @@
 
                                 <div class="ps-3" id="revenue-data">
                                     <h6 id="slave1-revenue">
-                                        Slave 1 : {{ $logTotal !== 'N/A' ? $logTotal : 'N/A' }}
+                                        Slave 2 : {{ $logTotal !== 'N/A' ? $logTotal : 'N/A' }}
                                     </h6>
                                 </div>
                             </div>
@@ -265,7 +265,7 @@
                 <div class="col-xxl-3 col-xl-12">
                     <div class="card info-card customers-card">
                         <div class="card-body mt-4">
-                            <h5 class="card-title">Packetloss <span id="data-title">| Slave 1</span></h5>
+                            <h5 class="card-title">Packetloss <span id="data-title">| Slave 2</span></h5>
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
@@ -274,7 +274,7 @@
 
                                 <div class="ps-3" id="packetloss-data">
                                     <h6 id="slave1-packetloss">
-                                        Slave 1 : {{ $packetLoss !== 'N/A' ? $packetLoss . '%' : 'N/A' }}
+                                        Slave 2 : {{ $packetLoss !== 'N/A' ? $packetLoss . '%' : 'N/A' }}
                                     </h6>
                                 </div>
                             </div>
@@ -286,7 +286,7 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body mt-4">
-                            <h5 class="card-title">Data Payload <span id="data-title">| Slave 1</span></h5>
+                            <h5 class="card-title">Data Payload <span id="data-title">| Slave 2</span></h5>
                             <!-- Line Chart -->
                             <div id="lineChart"></div>
 
