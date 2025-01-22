@@ -43,13 +43,6 @@
             <i class="bi bi-list toggle-sidebar-btn"></i>
         </div><!-- End Logo -->
 
-        <div class="search-bar">
-            <form class="search-form d-flex align-items-center" method="POST" action="#">
-                <input type="text" name="query" placeholder="Search" title="Enter search keyword">
-                <button type="submit" title="Search"><i class="bi bi-search"></i></button>
-            </form>
-        </div><!-- End Search Bar -->
-
         <nav class="header-nav ms-auto">
             <ul class="d-flex align-items-center">
 
@@ -63,12 +56,12 @@
 
                     <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#"
                         data-bs-toggle="dropdown">
-                        <span class="d-none d-md-block dropdown-toggle ps-2">{{ auth()->user()->name }}</span>
+                        <span class="d-none d-md-block dropdown-toggle ps-2">{{auth()->user()->name}}</span>
                     </a><!-- End Profile Iamge Icon -->
 
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
                         <li class="dropdown-header">
-                            <h6>{{ auth()->user()->name }}</h6>
+                            <h6>{{auth()->user()->name}}</h6>
                             <span>User</span>
                         </li>
                         <li>
@@ -86,31 +79,19 @@
                         </li>
 
                         <li>
-                            <a class="dropdown-item d-flex align-items-center" href="users-profile">
-                                <i class="bi bi-gear"></i>
-                                <span>Account Settings</span>
-                            </a>
-                        </li>
-                        <li>
                             <hr class="dropdown-divider">
                         </li>
 
                         <li>
-                            <a class="dropdown-item d-flex align-items-center" href="pages-faq">
-                                <i class="bi bi-question-circle"></i>
-                                <span>Need Help?</span>
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="dropdown-item d-flex align-items-center">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Sign Out</span>
+                                </button>
+                            </form>
                         </li>
 
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="bi bi-box-arrow-right"></i>
-                                <span>Sign Out</span>
-                            </a>
-                        </li>
 
                     </ul><!-- End Profile Dropdown Items -->
                 </li><!-- End Profile Nav -->
@@ -204,7 +185,7 @@
             <div class="row">
                 <div class="col-xxl-3 col-md-6">
                     <div class="card info-card sales-card">
-                        <div class="card-body">
+                        <div class="card-body mt-4">
                             <h5 class="card-title">Kelembaban <span id="data-title">| Slave 3</span></h5>
 
                             <div class="d-flex align-items-center">
@@ -469,18 +450,22 @@
                                     <thead>
                                         <tr>
                                             <th>NO</th>
-                                            <th>Nama Sensor</th>
-                                            <th>Kelembaban</th>
+                                            <th>Sensor 1</th>
+                                            <th>Sensor 2</th>
+                                            <th>Sensor 3</th>
+                                            <th>Sensor 4</th>
                                             <th>Tanggal & Waktu</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @forelse ($latestSensorData as $index => $data)
+                                        @forelse ($sensorDataByTime as $index => $data)
                                             <tr>
-                                                <td>{{ $index + 1 }}</td>
-                                                <td>{{ $data['sensor_name'] }}</td>
-                                                <td>{{ $data['moisture_value'] }}%</td>
-                                                <td>{{ $data['created_at'] }}</td>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td>{{ $data['sensors'][9] ?? 'N/A' }}%</td>
+                                                <td>{{ $data['sensors'][10] ?? 'N/A' }}%</td>
+                                                <td>{{ $data['sensors'][11] ?? 'N/A' }}%</td>
+                                                <td>{{ $data['sensors'][12] ?? 'N/A' }}%</td>
+                                                <td>{{ $data['timestamp'] }}</td>
                                             </tr>
                                         @empty
                                             <tr>

@@ -39,18 +39,10 @@
 
         <div class="d-flex align-items-center justify-content-between">
             <a href="index" class="logo d-flex align-items-center">
-                <img src="assets/img/logo.png" alt="">
                 <span class="d-none d-lg-block">RoleFlex</span>
             </a>
             <i class="bi bi-list toggle-sidebar-btn"></i>
         </div><!-- End Logo -->
-
-        <div class="search-bar">
-            <form class="search-form d-flex align-items-center" method="POST" action="#">
-                <input type="text" name="query" placeholder="Search" title="Enter search keyword">
-                <button type="submit" title="Search"><i class="bi bi-search"></i></button>
-            </form>
-        </div><!-- End Search Bar -->
 
         <nav class="header-nav ms-auto">
             <ul class="d-flex align-items-center">
@@ -83,36 +75,21 @@
                                 <span>My Profile</span>
                             </a>
                         </li>
+
                         <li>
                             <hr class="dropdown-divider">
                         </li>
 
                         <li>
-                            <a class="dropdown-item d-flex align-items-center" href="users-profile">
-                                <i class="bi bi-gear"></i>
-                                <span>Account Settings</span>
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="pages-faq">
-                                <i class="bi bi-question-circle"></i>
-                                <span>Need Help?</span>
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="dropdown-item d-flex align-items-center">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Sign Out</span>
+                                </button>
+                            </form>
                         </li>
 
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="bi bi-box-arrow-right"></i>
-                                <span>Sign Out</span>
-                            </a>
-                        </li>
 
                     </ul><!-- End Profile Dropdown Items -->
                 </li><!-- End Profile Nav -->
@@ -210,7 +187,7 @@
 
                         <div class="col-xxl-4 col-md-6">
                             <div class="card info-card sales-card">
-                                <div class="card-body">
+                                <div class="card-body" style="min-height: 208px;"">
                                     <h5 class="card-title">Kelembaban</h5>
                                     <div class="d-flex align-items-center">
                                         <div
@@ -226,15 +203,11 @@
                                                     {{ $humidity ?? 'N/A' }}%</h6>
                                             @endforeach
                                         </div>
-
-
-
                                     </div>
-
                                     <!-- Garis pemisah -->
                                     <hr>
                                     <div class="mt-3">
-                                        <h6 id="total-revenue">Rata-rata semua kelembaban: {{ $totalAverageHumidity }}%
+                                        <h6 id="total-revenue">Rata-rata Kelembaban: {{ $totalAverageHumidity }}%
                                         </h6>
                                     </div>
 
@@ -245,7 +218,7 @@
                         <!-- Revenue Card -->
                         <div class="col-xxl-4 col-md-6">
                             <div class="card info-card revenue-card">
-                                <div class="card-body">
+                                <div class="card-body" >
                                     <h5 class="card-title">Log</h5>
 
                                     <div class="d-flex align-items-center">
@@ -321,102 +294,105 @@
                                         <li class="dropdown-header text-start">
                                             <h6>Filter</h6>
                                         </li>
-                                        <li><a class="dropdown-item" href="" data-value="hourly">Per Jam</a>
+                                        <li><a class="dropdown-item chart-filter" href="" data-value="hourly">Per Jam</a>
                                         </li>
-                                        <li><a class="dropdown-item" href="" data-value="daily">Per Hari</a>
+                                        <li><a class="dropdown-item chart-filter" href="" data-value="daily">Per Hari</a>
                                         </li>
-                                        <li><a class="dropdown-item" href="" data-value="monthly">Per
+                                        <li><a class="dropdown-item chart-filter" href="" data-value="monthly">Per
                                                 Bulan</a></li>
                                     </ul>
                                 </div>
                                 <div class="card-body">
-                                    <h5 class="card-title">Data Yang Diterima</h5>
+                                    <h5 class="card-title">Ukuran Data Yang Masuk</h5>
                                     <!-- Line Chart -->
                                     <div id="reportsChart"></div>
                                     <script>
-                                        document.addEventListener("DOMContentLoaded", () => {
-                                            // Inisialisasi chart dengan ApexCharts
-                                            const chart = new ApexCharts(document.querySelector("#reportsChart"), {
-                                                series: [],
-                                                chart: {
-                                                    height: 350,
-                                                    type: 'line',
-                                                    toolbar: {
-                                                        show: false
-                                                    }
-                                                },
-                                                markers: {
-                                                    size: 4
-                                                },
-                                                colors: ['#FF1493', '#1E90FF', '#32CD32', '#FF8C00', '#8A2BE2'],
-                                                stroke: {
-                                                    curve: 'smooth',
-                                                    width: 2
-                                                },
-                                                xaxis: {
-                                                    categories: [] // Waktu akan diisi di sini
-                                                },
-                                                yaxis: {
-                                                    title: {
-                                                        text: 'Jumlah Data'
-                                                    }
-                                                },
-                                                tooltip: {
-                                                    shared: true,
-                                                    intersect: false,
-                                                    y: {
-                                                        formatter: function(value, {
-                                                            seriesIndex,
-                                                            dataPointIndex,
-                                                            w
-                                                        }) {
-                                                            return `Sensor ${seriesIndex + 1}: ${value} data`;
-                                                        }
+                                    document.addEventListener("DOMContentLoaded", () => {
+                                        const chart = new ApexCharts(document.querySelector("#reportsChart"), {
+                                            series: [
+                                                { name: 'Master', data: [] },
+                                                { name: 'Slave 1', data: [] },
+                                                { name: 'Slave 2', data: [] },
+                                                { name: 'Slave 3', data: [] }
+                                            ],
+                                            chart: {
+                                                height: 350,
+                                                type: 'line',
+                                                toolbar: { show: false },
+                                                animations: {
+                                                    enabled: true,
+                                                    easing: 'linear'
+                                                }
+                                            },
+                                            markers: { size: 4 },
+                                            colors: ['#FF1493', '#1E90FF', '#32CD32', '#FF8C00'],
+                                            stroke: {
+                                                curve: 'smooth',
+                                                width: 2
+                                            },
+                                            xaxis: {
+                                                categories: []
+                                            },
+                                            yaxis: {
+                                                title: { text: 'Jumlah Data' },
+                                                min: 0,
+                                                labels: {
+                                                    formatter: (val) => Math.floor(val)
+                                                }
+                                            },
+                                            tooltip: {
+                                                shared: true,
+                                                intersect: false,
+                                                y: {
+                                                    formatter: (value, {seriesIndex}) => {
+                                                        const nodeNames = ['Master', 'Slave 1', 'Slave 2', 'Slave 3'];
+                                                        return `${nodeNames[seriesIndex]}: ${Math.floor(value)} data`
                                                     }
                                                 }
-                                            });
+                                            }
+                                        });
 
-                                            chart.render();
+                                        chart.render();
 
-                                            // Fetch data dari API
+                                        function updateChart() {
                                             fetch('/api/soil-moisture-data')
                                                 .then(response => response.json())
                                                 .then(data => {
-                                                    const series = [];
-                                                    const timestamps = []; // Array untuk menyimpan waktu
+                                                    const series = [
+                                                        { name: 'Master', data: [] },
+                                                        { name: 'Slave 1', data: [] },
+                                                        { name: 'Slave 2', data: [] },
+                                                        { name: 'Slave 3', data: [] }
+                                                    ];
+                                                    const timestamps = [];
 
-                                                    data.forEach(node => {
-                                                        let nodeSeries = {
-                                                            name: node.node_type,
-                                                            data: []
-                                                        };
-
-                                                        node.data.forEach(sensorData => {
-                                                            // Menambahkan waktu ke kategori (x-axis)
-                                                            timestamps.push(...sensorData.timestamps);
-
-                                                            // Menambahkan jumlah data yang diterima per waktu
-                                                            nodeSeries.data.push(...sensorData.data_count);
-                                                        });
-
-                                                        series.push(nodeSeries);
+                                                    data.forEach((node, index) => {
+                                                        if (index < 4) {  // Ensure we only process up to 4 nodes
+                                                            node.data.forEach(sensorData => {
+                                                                timestamps.push(...sensorData.timestamps);
+                                                                series[index].data.push(...sensorData.data_count);
+                                                            });
+                                                        }
                                                     });
 
-                                                    // Menghapus duplikat waktu (timestamps)
                                                     const uniqueTimestamps = [...new Set(timestamps)];
+                                                    const maxValue = Math.max(...series.flatMap(s => s.data));
 
-                                                    // Update chart dengan data yang diterima
                                                     chart.updateOptions({
-                                                        xaxis: {
-                                                            categories: uniqueTimestamps // Menambahkan waktu sebagai kategori
+                                                        xaxis: { categories: uniqueTimestamps },
+                                                        yaxis: {
+                                                            ...chart.options.yaxis,
+                                                            max: maxValue + Math.ceil(maxValue * 0.1)
                                                         },
                                                         series: series
                                                     });
                                                 })
-                                                .catch(error => {
-                                                    console.error('Error fetching soil moisture data:', error);
-                                                });
-                                        });
+                                                .catch(error => console.error('Error:', error));
+                                        }
+
+                                        updateChart();
+                                        setInterval(updateChart, 5000);
+                                    });
                                     </script>
 
 
@@ -429,8 +405,6 @@
 
                         </div><!-- End Reports -->
                         <!-- End Reports -->
-
-
 
                         <!-- Recent Sales -->
                         <div class="col-12">
@@ -609,7 +583,7 @@
 
     <script>
         // Menghentikan link agar tidak membawa halaman kembali ke atas
-        document.querySelectorAll('.dropdown-item').forEach(item => {
+        document.querySelectorAll('.chart-filter').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault(); // Mencegah tindakan default
                 const range = this.getAttribute('data-value');

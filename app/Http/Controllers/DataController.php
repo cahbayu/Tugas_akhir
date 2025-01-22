@@ -189,26 +189,29 @@ class DataController extends Controller
         })->sortKeys();
 
         // Ambil data sensor terbaru
-        $latestSensorData = [];
+        $sensorDataByTime = [];
         foreach ($node->sensors as $sensor) {
-            $latestData = $sensor->soilMoistureData()->latest('created_at')->first();
-            if ($latestData) {
-                $latestSensorData[] = [
-                    'sensor_name' => $sensor->sensor_name,
-                    'moisture_value' => $latestData->moisture_value,
-                    'created_at' => $latestData->created_at->format('Y-m-d H:i:s'),
-                ];
-            }
+           $allData = $sensor->soilMoistureData()->orderBy('created_at', 'desc')->get();
+           foreach ($allData as $data) {
+               $timestamp = $data->created_at->format('Y-m-d H:i:s');
+               if (!isset($sensorDataByTime[$timestamp])) {
+                   $sensorDataByTime[$timestamp] = [
+                       'timestamp' => $timestamp,
+                       'sensors' => []
+                   ];
+               }
+               $sensorDataByTime[$timestamp]['sensors'][$sensor->sensor_id] = $data->moisture_value;
+           }
         }
-
+        
         return view('tables-slave1', compact(
             'averageHumidity',
-            'totalPayload',
+            'totalPayload', 
             'logTotal',
             'packetLoss',
             'lineChartData',
             'packetLossData',
-            'latestSensorData'
+            'sensorDataByTime' // Ganti latestSensorData dengan sensorData
         ));
     }
 
@@ -284,26 +287,29 @@ class DataController extends Controller
         })->sortKeys();
 
         // Ambil data sensor terbaru
-        $latestSensorData = [];
+        $sensorDataByTime = [];
         foreach ($node->sensors as $sensor) {
-            $latestData = $sensor->soilMoistureData()->latest('created_at')->first();
-            if ($latestData) {
-                $latestSensorData[] = [
-                    'sensor_name' => $sensor->sensor_name,
-                    'moisture_value' => $latestData->moisture_value,
-                    'created_at' => $latestData->created_at->format('Y-m-d H:i:s'),
-                ];
-            }
+           $allData = $sensor->soilMoistureData()->orderBy('created_at', 'desc')->get();
+           foreach ($allData as $data) {
+               $timestamp = $data->created_at->format('Y-m-d H:i:s');
+               if (!isset($sensorDataByTime[$timestamp])) {
+                   $sensorDataByTime[$timestamp] = [
+                       'timestamp' => $timestamp,
+                       'sensors' => []
+                   ];
+               }
+               $sensorDataByTime[$timestamp]['sensors'][$sensor->sensor_id] = $data->moisture_value;
+           }
         }
-
+        
         return view('tables-slave2', compact(
             'averageHumidity',
-            'totalPayload',
+            'totalPayload', 
             'logTotal',
             'packetLoss',
             'lineChartData',
             'packetLossData',
-            'latestSensorData'
+            'sensorDataByTime' // Ganti latestSensorData dengan sensorData
         ));
     }
 
@@ -374,26 +380,29 @@ class DataController extends Controller
         })->sortKeys();
 
         // Ambil data sensor terbaru
-        $latestSensorData = [];
+        $sensorDataByTime = [];
         foreach ($node->sensors as $sensor) {
-            $latestData = $sensor->soilMoistureData()->latest('created_at')->first();
-            if ($latestData) {
-                $latestSensorData[] = [
-                    'sensor_name' => $sensor->sensor_name,
-                    'moisture_value' => $latestData->moisture_value,
-                    'created_at' => $latestData->created_at->format('Y-m-d H:i:s'),
-                ];
-            }
+           $allData = $sensor->soilMoistureData()->orderBy('created_at', 'desc')->get();
+           foreach ($allData as $data) {
+               $timestamp = $data->created_at->format('Y-m-d H:i:s');
+               if (!isset($sensorDataByTime[$timestamp])) {
+                   $sensorDataByTime[$timestamp] = [
+                       'timestamp' => $timestamp,
+                       'sensors' => []
+                   ];
+               }
+               $sensorDataByTime[$timestamp]['sensors'][$sensor->sensor_id] = $data->moisture_value;
+           }
         }
-
+        
         return view('tables-slave3', compact(
             'averageHumidity',
-            'totalPayload',
+            'totalPayload', 
             'logTotal',
             'packetLoss',
             'lineChartData',
             'packetLossData',
-            'latestSensorData'
+            'sensorDataByTime' // Ganti latestSensorData dengan sensorData
         ));
     }
 
