@@ -133,6 +133,26 @@ class NodeController extends Controller
             }
         }
 
+        // Log jika master utama tidak mengirim data
+        $expected_master = 1; // Node ID master utama yang diharapkan
+        $master_detected = $is_master;
+
+        if (!$master_detected) {
+            $nodeModel = Node::find($expected_master);
+            if ($nodeModel) {
+                $nodeModel->online = "Tidak";
+                $nodeModel->save();
+            }
+
+            $this->saveLog(
+                $expected_master,
+                "Master (Node $expected_master) tidak mengirim data.",
+                0,  // payload_size = 0
+                12,  // expected_data = 0 (tidak ada data yang diharapkan)
+                0   // received_data = 0
+            );
+        }
+
         return response()->json([
             "status" => "success", 
             "message" => "Data berhasil disimpan."
