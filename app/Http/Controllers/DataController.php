@@ -105,7 +105,7 @@ class DataController extends Controller
             ? round((($totalExpectedData - $totalReceivedData) / $totalExpectedData) * 100, 2)
             : 0;
 
-        $logTotal = Log::count();
+        $logTotal = Log::where('received_data', '!=', 0)->count();
 
         return view('index', compact(
             'nodeHumidityData',
@@ -160,7 +160,7 @@ class DataController extends Controller
         $totalPayload = $nodeLogs->sum('payload_size');
 
         // Hitung jumlah log
-        $logTotal = $nodeLogs->count();
+        $logTotal = $nodeLogs->where('received_data', '!=', 0)->count();
 
         // Hitung packet loss
         $expectedData = $nodeLogs->sum('expected_data');
@@ -258,7 +258,7 @@ class DataController extends Controller
         $totalPayload = $nodeLogs->sum('payload_size');
 
         // Hitung jumlah log
-        $logTotal = $nodeLogs->count();
+        $logTotal = $nodeLogs->where('received_data', '!=', 0)->count();
 
         // Hitung packet loss
         $expectedData = $nodeLogs->sum('expected_data');
@@ -351,7 +351,7 @@ class DataController extends Controller
         $totalPayload = $nodeLogs->sum('payload_size');
 
         // Hitung jumlah log
-        $logTotal = $nodeLogs->count();
+        $logTotal = $nodeLogs->where('received_data', '!=', 0)->count();
 
         // Hitung packet loss
         $expectedData = $nodeLogs->sum('expected_data');
@@ -423,7 +423,10 @@ class DataController extends Controller
         foreach ($nodes as $node) {
             // Ambil data yang diperlukan per node untuk 1 jam terakhir
             $nodePayload = $node->logs()->where('created_at', '>=', now()->subHour())->sum('payload_size');
-            $nodeLogCount = $node->logs()->where('created_at', '>=', now()->subHour())->count();
+            $nodeLogCount = $node->logs()
+                ->where('created_at', '>=', now()->subHour())
+                ->where('received_data', '!=', 0)
+                ->count();
             $nodeExpectedData = $node->logs()->where('created_at', '>=', now()->subHour())->sum('expected_data');
             $nodeReceivedData = $node->logs()->where('created_at', '>=', now()->subHour())->sum('received_data');
             $nodePacketLoss = $nodeReceivedData > 0
@@ -458,43 +461,46 @@ class DataController extends Controller
 
     public function getSoilMoistureData()
     {
-        // Ambil data soil moisture untuk setiap node dalam 6 jam terakhir
-        $nodes = Node::with(['sensors.soilMoistureData' => function ($query) {
-            $query->where('created_at', '>=', Carbon::now()->subHours(6))  // Ambil data dalam 6 jam terakhir
+        $nodes = Node::with(['logs' => function ($query) {
+            $query->where('created_at', '>=', Carbon::now()->subHours(24))
                 ->orderBy('created_at', 'asc');
         }])->get();
-
-        // Siapkan array untuk menyimpan data yang akan dikirimkan ke front-end
+    
         $data = [];
+        $totalAllReceived = 0; // Total untuk semua node
+        
         foreach ($nodes as $node) {
+            $nodeTotal = $node->logs()->sum('received_data');
+            $totalAllReceived += $nodeTotal;
+            
             $nodeData = [
                 'node_type' => $node->node_type,
-                'data' => []
-            ];
-
-            // Ambil waktu dan hitung jumlah data soil moisture untuk setiap sensor
-            foreach ($node->sensors as $sensor) {
-                $soilMoistureData = $sensor->soilMoistureData()
-                    ->where('created_at', '>=', Carbon::now()->subHours(6)) // Data dalam 6 jam terakhir
-                    ->get();
-
-                $sensorData = [
-                    'sensor_name' => $sensor->sensor_name,
+                'total_received' => $nodeTotal,
+                'data' => [[
                     'timestamps' => [],
                     'data_count' => []
-                ];
-
-                foreach ($soilMoistureData as $dataPoint) {
-                    $sensorData['timestamps'][] = $dataPoint->created_at->format('H:i'); // Waktu dalam format jam:menit
-                    $sensorData['data_count'][] = 1; // Setiap entri dianggap sebagai 1 data
-                }
-
-                $nodeData['data'][] = $sensorData;
+                ]]
+            ];
+    
+            $logs = $node->logs()
+                ->where('created_at', '>=', Carbon::now()->subHours(24))
+                ->get()
+                ->groupBy(function($log) {
+                    return $log->created_at->format('H:i');
+                });
+    
+            foreach ($logs as $timestamp => $logGroup) {
+                $nodeData['data'][0]['timestamps'][] = $timestamp;
+                $nodeData['data'][0]['data_count'][] = $logGroup->sum('received_data');
             }
+    
             $data[] = $nodeData;
         }
-
-        return response()->json($data);
+    
+        return response()->json([
+            'nodes' => $data,
+            'total_all_received' => $totalAllReceived
+        ]);
     }
 
 

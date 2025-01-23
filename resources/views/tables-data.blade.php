@@ -245,54 +245,6 @@
                     </div>
                 </div>
 
-                <script>
-                    function showData(selection) {
-                        let title = document.getElementById("data-title");
-                        let masterHumidity = document.getElementById("master-humidity");
-                        let slave1Humidity = document.getElementById("slave1-humidity");
-                        let slave2Humidity = document.getElementById("slave2-humidity");
-                        let slave3Humidity = document.getElementById("slave3-humidity");
-                        let total = document.getElementById("total-humidity");
-
-                        // Reset visibility of all humidity data
-                        slave1Humidity.style.display = 'block';
-                        slave2Humidity.style.display = 'block';
-                        slave3Humidity.style.display = 'block';
-                        masterHumidity.style.display = 'block';
-
-                        if (selection === 'master') {
-                            title.innerHTML = '| Master';
-                            masterHumidity.innerHTML = `Master: 6000 B`;
-                            slave1Humidity.innerHTML = `Slave 1: 1000 B`;
-                            slave2Humidity.innerHTML = `Slave 2: 2000 B`;
-                            slave3Humidity.innerHTML = `Slave 3: 3000 B`;
-                            total.innerHTML = 'Total Byte: 6000 B (Rata-Rata)';
-                        } else if (selection === 'slave1') {
-                            title.innerHTML = '| Slave 1';
-                            masterHumidity.style.display = 'none'; // Hide master data
-                            slave1Humidity.innerHTML = `Slave 1: 1000 B`;
-                            slave2Humidity.innerHTML = `Slave 2: 2000 B`;
-                            slave3Humidity.innerHTML = `Slave 3: 3000 B`;
-                            total.innerHTML = 'Total Byte: 6000 B (Rata-Rata)';
-                        } else if (selection === 'slave2') {
-                            title.innerHTML = '| Slave 2';
-                            masterHumidity.style.display = 'none'; // Hide master data
-                            slave1Humidity.style.display = 'none'; // Hide Slave 1
-                            slave2Humidity.innerHTML = `Slave 2: 2000 B`;
-                            slave3Humidity.innerHTML = `Slave 3: 3000`;
-                            total.innerHTML = 'Total Byte: 6000 B (Rata-Rata)';
-                        } else if (selection === 'slave3') {
-                            title.innerHTML = '| Slave 3';
-                            masterHumidity.style.display = 'none'; // Hide master data
-                            slave1Humidity.style.display = 'none'; // Hide Slave 1
-                            slave2Humidity.style.display = 'none'; // Hide Slave 2
-                            slave3Humidity.innerHTML = `Slave 3: 3000 B`;
-                            total.innerHTML = 'Total Byte: 6000 B (Rata-Rata)';
-                        }
-                    }
-                </script>
-
-
                 <!-- Revenue Card -->
                 <div class="col-xxl-4 col-md-6">
                     <div class="card info-card revenue-card">
@@ -344,47 +296,6 @@
 
                     </div>
                 </div>
-
-                <script>
-                    function showDataRevenue(selection) {
-                        let title = document.getElementById("revenue-title");
-                        let masterRevenue = document.getElementById("master-revenue");
-                        let slave1Revenue = document.getElementById("slave1-revenue");
-                        let slave2Revenue = document.getElementById("slave2-revenue");
-                        let slave3Revenue = document.getElementById("slave3-revenue");
-                        let total = document.getElementById("total-revenue");
-
-                        // Hide all data initially
-                        masterRevenue.style.display = 'none';
-                        slave1Revenue.style.display = 'none';
-                        slave2Revenue.style.display = 'none';
-                        slave3Revenue.style.display = 'none';
-
-                        if (selection === 'master') {
-                            title.innerHTML = '| Master';
-                            masterRevenue.style.display = 'block'; // Show Master
-                            slave1Revenue.style.display = 'block'; // Show Slave 1
-                            slave2Revenue.style.display = 'block'; // Show Slave 2
-                            slave3Revenue.style.display = 'block'; // Show Slave 3
-                            total.innerHTML = 'Total: 3660'; // Adjust total for Master (sum of all Slaves)
-                        } else if (selection === 'slave1') {
-                            title.innerHTML = '| Slave 1';
-                            slave1Revenue.style.display = 'block'; // Show Slave 1
-                            slave2Revenue.style.display = 'block'; // Show Slave 2
-                            slave3Revenue.style.display = 'block'; // Show Slave 3
-                            total.innerHTML = 'Total: 3660'; // Adjust total for Slave 1 (sum of all)
-                        } else if (selection === 'slave2') {
-                            title.innerHTML = '| Slave 2';
-                            slave2Revenue.style.display = 'block'; // Show Slave 2
-                            slave3Revenue.style.display = 'block'; // Show Slave 3
-                            total.innerHTML = 'Total: 2440'; // Adjust total for Slave 2 (sum of Slave 2 and Slave 3)
-                        } else if (selection === 'slave3') {
-                            title.innerHTML = '| Slave 3';
-                            slave3Revenue.style.display = 'block'; // Show Slave 3
-                            total.innerHTML = 'Total: 1220'; // Adjust total for Slave 3 (only Slave 3)
-                        }
-                    }
-                </script>
 
                 <!-- Customers Card -->
                 <div class="col-xxl-4 col-xl-12">

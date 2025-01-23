@@ -231,7 +231,7 @@
                                             <!-- Data revenue akan ditampilkan di sini -->
                                             @foreach ($nodes as $node)
                                                 <h6 id="master-revenue">{{ $node->node_type }} :
-                                                    {{ $node->logs->count() }}</h6>
+                                                    {{ $node->logs->where('received_data', '!=', 0)->count() }}</h6>
                                             @endforeach
                                         </div>
                                     </div>
@@ -287,29 +287,30 @@
                         <!-- Reports -->
                         <div class="col-12">
                             <div class="card">
-                                <div class="filter">
-                                    <a class="icon" href="#" data-bs-toggle="dropdown"><i
-                                            class="bi bi-three-dots"></i></a>
-                                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                                        <li class="dropdown-header text-start">
-                                            <h6>Filter</h6>
-                                        </li>
-                                        <li><a class="dropdown-item chart-filter" href="" data-value="hourly">Per Jam</a>
-                                        </li>
-                                        <li><a class="dropdown-item chart-filter" href="" data-value="daily">Per Hari</a>
-                                        </li>
-                                        <li><a class="dropdown-item chart-filter" href="" data-value="monthly">Per
-                                                Bulan</a></li>
-                                    </ul>
-                                </div>
                                 <div class="card-body">
-                                    <h5 class="card-title">Ukuran Data Yang Masuk</h5>
-                                    <!-- Line Chart -->
-                                    <div id="reportsChart"></div>
+                                    <h5 class="card-title">Data Yang Diterima</h5>
+                                    
+                                    <div class="filter mb-3">
+                                        <a class="icon" href="#" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                            <li class="dropdown-header text-start">
+                                                <h6>Filter</h6>
+                                            </li>
+                                            <li><a class="dropdown-item" href="#" data-value="hourly">Per Jam</a></li>
+                                            <li><a class="dropdown-item" href="#" data-value="daily">Per Hari</a></li>
+                                            <li><a class="dropdown-item" href="#" data-value="monthly">Per Bulan</a></li>
+                                        </ul>
+                                    </div>
+                         
+                                    <div id="areaChart"></div>
+                         
                                     <script>
                                     document.addEventListener("DOMContentLoaded", () => {
-                                        const chart = new ApexCharts(document.querySelector("#reportsChart"), {
+                                        const chart = new ApexCharts(document.querySelector("#areaChart"), {
                                             series: [
+                                                { name: 'Total Data', data: [] },
                                                 { name: 'Master', data: [] },
                                                 { name: 'Slave 1', data: [] },
                                                 { name: 'Slave 2', data: [] },
@@ -318,92 +319,91 @@
                                             chart: {
                                                 height: 350,
                                                 type: 'line',
+                                                zoom: { enabled: true },
                                                 toolbar: { show: false },
-                                                animations: {
-                                                    enabled: true,
-                                                    easing: 'linear'
-                                                }
+                                                animations: { enabled: true, easing: 'linear' }
                                             },
                                             markers: { size: 4 },
-                                            colors: ['#FF1493', '#1E90FF', '#32CD32', '#FF8C00'],
-                                            stroke: {
-                                                curve: 'smooth',
-                                                width: 2
-                                            },
-                                            xaxis: {
-                                                categories: []
-                                            },
+                                            colors: ['#800080','#FF1493', '#1E90FF', '#32CD32', '#FF8C00'],
+                                            stroke: { curve: 'smooth', width: 2 },
+                                            xaxis: { categories: [] },
                                             yaxis: {
-                                                title: { text: 'Jumlah Data' },
+                                                title: { text: 'Jumlah Data Diterima' },
                                                 min: 0,
-                                                labels: {
-                                                    formatter: (val) => Math.floor(val)
-                                                }
+                                                forceNiceScale: true,
+                                                decimalsInFloat: 0,
+                                                labels: { formatter: (val) => Math.max(0, Math.floor(val)) }
                                             },
                                             tooltip: {
                                                 shared: true,
                                                 intersect: false,
                                                 y: {
-                                                    formatter: (value, {seriesIndex}) => {
-                                                        const nodeNames = ['Master', 'Slave 1', 'Slave 2', 'Slave 3'];
-                                                        return `${nodeNames[seriesIndex]}: ${Math.floor(value)} data`
-                                                    }
+                                                    formatter: (value) => `${Math.floor(value)} data`
                                                 }
+                                            },
+                                            grid: {
+                                                row: { colors: ['transparent', 'transparent'], opacity: 0.5 }
                                             }
                                         });
-
+                         
                                         chart.render();
-
-                                        function updateChart() {
-                                            fetch('/api/soil-moisture-data')
+                         
+                                        function updateChart(range = 'hourly') {
+                                            fetch(`/api/soil-moisture-data?range=${range}`)
                                                 .then(response => response.json())
-                                                .then(data => {
-                                                    const series = [
-                                                        { name: 'Master', data: [] },
-                                                        { name: 'Slave 1', data: [] },
-                                                        { name: 'Slave 2', data: [] },
-                                                        { name: 'Slave 3', data: [] }
-                                                    ];
-                                                    const timestamps = [];
-
-                                                    data.forEach((node, index) => {
-                                                        if (index < 4) {  // Ensure we only process up to 4 nodes
-                                                            node.data.forEach(sensorData => {
-                                                                timestamps.push(...sensorData.timestamps);
-                                                                series[index].data.push(...sensorData.data_count);
-                                                            });
-                                                        }
+                                                .then(({nodes}) => {
+                                                    if(!nodes || nodes.length === 0) return;
+                                                    
+                                                    const timestamps = nodes[0].data[0].timestamps;
+                                                    let totalByTimestamp = new Array(timestamps.length).fill(0);
+                         
+                                                    nodes.forEach(node => {
+                                                        node.data[0].data_count.forEach((count, i) => {
+                                                            totalByTimestamp[i] += count;
+                                                        });
                                                     });
-
-                                                    const uniqueTimestamps = [...new Set(timestamps)];
-                                                    const maxValue = Math.max(...series.flatMap(s => s.data));
-
+                         
+                                                    const series = [{
+                                                        name: 'Total Data',
+                                                        data: totalByTimestamp
+                                                    }];
+                         
+                                                    nodes.forEach(node => {
+                                                        series.push({
+                                                            name: node.node_type === 'master' ? 'Master' : 
+                                                                  node.node_type === 'slave1' ? 'Slave 1' : 
+                                                                  node.node_type === 'slave2' ? 'Slave 2' : 'Slave 3',
+                                                            data: node.data[0].data_count
+                                                        });
+                                                    });
+                         
                                                     chart.updateOptions({
-                                                        xaxis: { categories: uniqueTimestamps },
-                                                        yaxis: {
-                                                            ...chart.options.yaxis,
-                                                            max: maxValue + Math.ceil(maxValue * 0.1)
-                                                        },
+                                                        xaxis: { categories: timestamps },
                                                         series: series
                                                     });
                                                 })
                                                 .catch(error => console.error('Error:', error));
                                         }
-
+                         
+                                        // Initial load
                                         updateChart();
-                                        setInterval(updateChart, 5000);
+                                        
+                                        // Auto update every 5 seconds
+                                        setInterval(() => updateChart(), 5000);
+                         
+                                        // Filter handler
+                                        document.querySelectorAll('.dropdown-item').forEach(item => {
+                                            item.addEventListener('click', (e) => {
+                                                e.preventDefault();
+                                                const range = e.target.getAttribute('data-value');
+                                                updateChart(range);
+                                            });
+                                        });
                                     });
                                     </script>
-
-
-                                    <!-- End Line Chart -->
                                 </div>
-
-
-
                             </div>
-
-                        </div><!-- End Reports -->
+                         </div><!-- End Reports -->
                         <!-- End Reports -->
 
                         <!-- Recent Sales -->
