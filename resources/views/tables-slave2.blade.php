@@ -337,22 +337,6 @@
                         <div class="card-body">
                             <h5 class="card-title">Packet Loss</h5>
 
-                            <!-- Filter Dropdown -->
-                            <div class="filter mb-3" id="timeRangeloss">
-                                <a class="icon" href="#" data-bs-toggle="dropdown"><i
-                                        class="bi bi-three-dots"></i></a>
-                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                                    <li class="dropdown-header text-start">
-                                        <h6>Filter</h6>
-                                    </li>
-                                    <li><a class="dropdown-item" href="#"
-                                            onclick="showPacketLoss('hourly'); return false;">Per Jam</a></li>
-                                    <li><a class="dropdown-item" href="#"
-                                            onclick="showPacketLoss('daily'); return false;">Per Hari</a></li>
-                                    <li><a class="dropdown-item" href="#"
-                                            onclick="showPacketLoss('monthly'); return false;">Per Bulan</a></li>
-                                </ul>
-                            </div>
 
                             <!-- Area Chart -->
                             <div id="areaChart"></div>
