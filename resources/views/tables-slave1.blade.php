@@ -300,7 +300,7 @@
                                         xaxis: {
                                             categories,
                                             title: {
-                                                text: "Time (HH:mm)"
+                                                text: "Byte"
                                             }
                                         },
                                         yaxis: {

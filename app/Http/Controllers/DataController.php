@@ -33,7 +33,7 @@ class DataController extends Controller
 
         foreach ($nodes as $node) {
             // Hitung jumlah log dan payload size dalam 1 jam terakhir
-            $nodeLogs = $node->logs()->where('created_at', '>=', now()->subHour())->get();
+            $nodeLogs = $node->logs();
             $nodeLogsCount = $nodeLogs->count();
             $nodePayloadSize = $nodeLogs->sum('payload_size');
             $totalLogs += $nodeLogsCount;
@@ -61,8 +61,8 @@ class DataController extends Controller
             $nodeSoilMoistureCount = 0;
 
             foreach ($node->sensors as $sensor) {
-                $sensorMoistureData = $sensor->soilMoistureData()->where('created_at', '>=', now()->subHour())->get();
-
+                $sensorMoistureData = $sensor->soilMoistureData()->get();
+                
                 foreach ($sensorMoistureData as $data) {
                     $nodeMoistureValue += $data->moisture_value;
                     $nodeSoilMoistureCount++;
@@ -144,7 +144,7 @@ class DataController extends Controller
         $nodeSoilMoistureCount = 0;
 
         foreach ($node->sensors as $sensor) {
-            $sensorMoistureData = $sensor->soilMoistureData()->where('created_at', '>=', now()->subHour())->get();
+            $sensorMoistureData = $sensor->soilMoistureData()->get();
             foreach ($sensorMoistureData as $data) {
                 $nodeMoistureValue += $data->moisture_value;
                 $nodeSoilMoistureCount++;
@@ -156,7 +156,7 @@ class DataController extends Controller
             : 'N/A';
 
         // Hitung total payload data
-        $nodeLogs = $node->logs()->where('created_at', '>=', now()->subHour())->get();
+        $nodeLogs = $node->logs()->get();
         $totalPayload = $nodeLogs->sum('payload_size');
 
         // Hitung jumlah log
@@ -170,15 +170,19 @@ class DataController extends Controller
             : 0;
 
         // Siapkan data untuk line chart
-        $lineChartData = $nodeLogs->groupBy(function ($log) {
-            return $log->created_at->format('H:i');
-        })->map(function ($group) {
+        $lineChartData = $node->logs()
+        ->orderBy('created_at', 'asc')
+        ->get()
+        ->groupBy(function ($log) {
+            return $log->created_at->format('H:00');
+        })
+        ->map(function ($group) {
             return $group->sum('payload_size');
-        })->sortKeys();
+        });
 
         // Siapkan data untuk packet loss
         $packetLossData = $nodeLogs->groupBy(function ($log) {
-            return $log->created_at->format('H:i');
+            return $log->created_at->format('H:00');
         })->map(function ($group) {
             $sent = $group->sum('expected_data');
             $lost = $group->sum('expected_data') - $group->sum('received_data');
@@ -217,9 +221,6 @@ class DataController extends Controller
 
 
 
-
-
-
     public function tables_slave2()
     {
         // Ambil Node 1 berdasarkan node_type dengan huruf kecil tanpa spasi
@@ -242,7 +243,7 @@ class DataController extends Controller
         $nodeSoilMoistureCount = 0;
 
         foreach ($node->sensors as $sensor) {
-            $sensorMoistureData = $sensor->soilMoistureData()->where('created_at', '>=', now()->subHour())->get();
+            $sensorMoistureData = $sensor->soilMoistureData()->get();
             foreach ($sensorMoistureData as $data) {
                 $nodeMoistureValue += $data->moisture_value;
                 $nodeSoilMoistureCount++;
@@ -254,7 +255,7 @@ class DataController extends Controller
             : 'N/A';
 
         // Hitung total payload data
-        $nodeLogs = $node->logs()->where('created_at', '>=', now()->subHour())->get();
+        $nodeLogs = $node->logs()->get();
         $totalPayload = $nodeLogs->sum('payload_size');
 
         // Hitung jumlah log
@@ -269,14 +270,14 @@ class DataController extends Controller
 
         // Siapkan data untuk line chart
         $lineChartData = $nodeLogs->groupBy(function ($log) {
-            return $log->created_at->format('H:i');
+            return $log->created_at->format('H:00');
         })->map(function ($group) {
             return $group->sum('payload_size');
         })->sortKeys();
 
         // Siapkan data untuk packet loss
         $packetLossData = $nodeLogs->groupBy(function ($log) {
-            return $log->created_at->format('H:i');
+            return $log->created_at->format('H:00');
         })->map(function ($group) {
             $sent = $group->sum('expected_data');
             $lost = $group->sum('expected_data') - $group->sum('received_data');
@@ -335,7 +336,7 @@ class DataController extends Controller
         $nodeSoilMoistureCount = 0;
 
         foreach ($node->sensors as $sensor) {
-            $sensorMoistureData = $sensor->soilMoistureData()->where('created_at', '>=', now()->subHour())->get();
+            $sensorMoistureData = $sensor->soilMoistureData()->get();
             foreach ($sensorMoistureData as $data) {
                 $nodeMoistureValue += $data->moisture_value;
                 $nodeSoilMoistureCount++;
@@ -347,7 +348,7 @@ class DataController extends Controller
             : 'N/A';
 
         // Hitung total payload data
-        $nodeLogs = $node->logs()->where('created_at', '>=', now()->subHour())->get();
+        $nodeLogs = $node->logs()->get();
         $totalPayload = $nodeLogs->sum('payload_size');
 
         // Hitung jumlah log
@@ -362,14 +363,14 @@ class DataController extends Controller
 
         // Siapkan data untuk line chart
         $lineChartData = $nodeLogs->groupBy(function ($log) {
-            return $log->created_at->format('H:i');
+            return $log->created_at->format('H:00');
         })->map(function ($group) {
             return $group->sum('payload_size');
         })->sortKeys();
 
         // Siapkan data untuk packet loss
         $packetLossData = $nodeLogs->groupBy(function ($log) {
-            return $log->created_at->format('H:i');
+            return $log->created_at->format('H:00');
         })->map(function ($group) {
             $sent = $group->sum('expected_data');
             $lost = $group->sum('expected_data') - $group->sum('received_data');
@@ -422,13 +423,12 @@ class DataController extends Controller
 
         foreach ($nodes as $node) {
             // Ambil data yang diperlukan per node untuk 1 jam terakhir
-            $nodePayload = $node->logs()->where('created_at', '>=', now()->subHour())->sum('payload_size');
+            $nodePayload = $node->logs()->sum('payload_size');            
             $nodeLogCount = $node->logs()
-                ->where('created_at', '>=', now()->subHour())
                 ->where('received_data', '!=', 0)
                 ->count();
-            $nodeExpectedData = $node->logs()->where('created_at', '>=', now()->subHour())->sum('expected_data');
-            $nodeReceivedData = $node->logs()->where('created_at', '>=', now()->subHour())->sum('received_data');
+            $nodeExpectedData = $node->logs()->sum('expected_data');
+            $nodeReceivedData = $node->logs()->sum('received_data');
             $nodePacketLoss = $nodeReceivedData > 0
                 ? round((1 - ($nodeReceivedData / $nodeExpectedData)) * 100, 2)
                 : 0;
@@ -459,20 +459,28 @@ class DataController extends Controller
 
 
 
-    public function getSoilMoistureData()
+    public function getSoilMoistureData(Request $request)
     {
+        // Ambil parameter dari request untuk menentukan resolusi waktu (default: hour)
+        $resolution = $request->get('resolution', 'hour'); // Default 'hour'
+    
+        // Validasi resolusi (hanya 'minute' dan 'hour' yang diperbolehkan)
+        if (!in_array($resolution, ['minute', 'hour'])) {
+            return response()->json(['error' => 'Invalid resolution'], 400);
+        }
+    
         $nodes = Node::with(['logs' => function ($query) {
-            $query->where('created_at', '>=', Carbon::now()->subHours(24))
-                ->orderBy('created_at', 'asc');
+            $query->orderBy('created_at', 'asc');
         }])->get();
     
         $data = [];
         $totalAllReceived = 0; // Total untuk semua node
-        
+    
         foreach ($nodes as $node) {
+            // Hitung total data yang diterima oleh setiap node
             $nodeTotal = $node->logs()->sum('received_data');
             $totalAllReceived += $nodeTotal;
-            
+    
             $nodeData = [
                 'node_type' => $node->node_type,
                 'total_received' => $nodeTotal,
@@ -482,11 +490,15 @@ class DataController extends Controller
                 ]]
             ];
     
+            // Grup data berdasarkan resolusi waktu
             $logs = $node->logs()
-                ->where('created_at', '>=', Carbon::now()->subHours(24))
+                ->orderBy('created_at', 'asc')
                 ->get()
-                ->groupBy(function($log) {
-                    return $log->created_at->format('H:i');
+                ->groupBy(function ($log) use ($resolution) {
+                    // Grup berdasarkan format waktu yang diminta
+                    return $resolution === 'minute'
+                        ? $log->created_at->format('H:i') // Per menit
+                        : $log->created_at->format('H:00'); // Per jam
                 });
     
             foreach ($logs as $timestamp => $logGroup) {
@@ -502,6 +514,7 @@ class DataController extends Controller
             'total_all_received' => $totalAllReceived
         ]);
     }
+    
 
 
     public function getNodeStatus()

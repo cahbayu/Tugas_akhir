@@ -28,11 +28,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/index', [DataController::class, 'index'])->name('index');
 
-    Route::get('/tables-slave1', [DataController::class, 'tables_slave1'])->name('index');
+    Route::get('/tables-slave1', [DataController::class, 'tables_slave1'])->name('tables-slave1');
 
-    Route::get('/tables-slave2', [DataController::class, 'tables_slave2'])->name('index');
+    Route::get('/tables-slave2', [DataController::class, 'tables_slave2'])->name('tables-slave2');
 
-    Route::get('/tables-slave3', [DataController::class, 'tables_slave3'])->name('index');
+    Route::get('/tables-slave3', [DataController::class, 'tables_slave3'])->name('tables-slave3');
 
     Route::get('/tables-data', [DataController::class, 'tables_data'])->name('index');
 });
@@ -79,3 +79,4 @@ Route::post('/api-inputdata', [NodeController::class, 'receiveData'])->name('api
 
 Route::get('/node-status', [DataController::class, 'getNodeStatus']);
 Route::get('/api/soil-moisture-data', [DataController::class, 'getSoilMoistureData']);
+

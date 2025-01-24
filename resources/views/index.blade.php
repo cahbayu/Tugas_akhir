@@ -68,18 +68,15 @@
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-
                         <li>
                             <a class="dropdown-item d-flex align-items-center" href="users-profile">
                                 <i class="bi bi-person"></i>
                                 <span>My Profile</span>
                             </a>
                         </li>
-
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-
                         <li>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
@@ -289,21 +286,6 @@
                             <div class="card">
                                 <div class="card-body">
                                     <h5 class="card-title">Data Yang Diterima</h5>
-                                    
-                                    <div class="filter mb-3">
-                                        <a class="icon" href="#" data-bs-toggle="dropdown">
-                                            <i class="bi bi-three-dots"></i>
-                                        </a>
-                                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                                            <li class="dropdown-header text-start">
-                                                <h6>Filter</h6>
-                                            </li>
-                                            <li><a class="dropdown-item" href="#" data-value="hourly">Per Jam</a></li>
-                                            <li><a class="dropdown-item" href="#" data-value="daily">Per Hari</a></li>
-                                            <li><a class="dropdown-item" href="#" data-value="monthly">Per Bulan</a></li>
-                                        </ul>
-                                    </div>
-                         
                                     <div id="areaChart"></div>
                          
                                     <script>
@@ -320,11 +302,22 @@
                                                 height: 350,
                                                 type: 'line',
                                                 zoom: { enabled: true },
-                                                toolbar: { show: false },
+                                                toolbar: { // Pastikan toolbar didefinisikan hanya di sini
+                                                    show: true, // Aktifkan toolbar
+                                                    tools: {
+                                                        download: true, // Tombol download
+                                                        selection: false,
+                                                        zoom: true, // Tombol zoom
+                                                        zoomin: true, // Tombol zoom in
+                                                        zoomout: true, // Tombol zoom out
+                                                        pan: false,
+                                                        reset: true // Tombol reset zoom
+                                                    }
+                                                },
                                                 animations: { enabled: true, easing: 'linear' }
                                             },
                                             markers: { size: 4 },
-                                            colors: ['#800080','#FF1493', '#1E90FF', '#32CD32', '#FF8C00'],
+                                            colors: ['#800080', '#FF1493', '#1E90FF', '#32CD32', '#FF8C00'],
                                             stroke: { curve: 'smooth', width: 2 },
                                             xaxis: { categories: [] },
                                             yaxis: {
@@ -345,38 +338,38 @@
                                                 row: { colors: ['transparent', 'transparent'], opacity: 0.5 }
                                             }
                                         });
-                         
+
                                         chart.render();
-                         
+
                                         function updateChart(range = 'hourly') {
                                             fetch(`/api/soil-moisture-data?range=${range}`)
                                                 .then(response => response.json())
-                                                .then(({nodes}) => {
-                                                    if(!nodes || nodes.length === 0) return;
-                                                    
+                                                .then(({ nodes }) => {
+                                                    if (!nodes || nodes.length === 0) return;
+
                                                     const timestamps = nodes[0].data[0].timestamps;
                                                     let totalByTimestamp = new Array(timestamps.length).fill(0);
-                         
+
                                                     nodes.forEach(node => {
                                                         node.data[0].data_count.forEach((count, i) => {
                                                             totalByTimestamp[i] += count;
                                                         });
                                                     });
-                         
+
                                                     const series = [{
                                                         name: 'Total Data',
                                                         data: totalByTimestamp
                                                     }];
-                         
+
                                                     nodes.forEach(node => {
                                                         series.push({
-                                                            name: node.node_type === 'master' ? 'Master' : 
-                                                                  node.node_type === 'slave1' ? 'Slave 1' : 
-                                                                  node.node_type === 'slave2' ? 'Slave 2' : 'Slave 3',
+                                                            name: node.node_type === 'master' ? 'Master' :
+                                                                node.node_type === 'slave1' ? 'Slave 1' :
+                                                                    node.node_type === 'slave2' ? 'Slave 2' : 'Slave 3',
                                                             data: node.data[0].data_count
                                                         });
                                                     });
-                         
+
                                                     chart.updateOptions({
                                                         xaxis: { categories: timestamps },
                                                         series: series
@@ -384,13 +377,13 @@
                                                 })
                                                 .catch(error => console.error('Error:', error));
                                         }
-                         
+
                                         // Initial load
                                         updateChart();
-                                        
+
                                         // Auto update every 5 seconds
                                         setInterval(() => updateChart(), 5000);
-                         
+
                                         // Filter handler
                                         document.querySelectorAll('.dropdown-item').forEach(item => {
                                             item.addEventListener('click', (e) => {
@@ -400,6 +393,7 @@
                                             });
                                         });
                                     });
+
                                     </script>
                                 </div>
                             </div>

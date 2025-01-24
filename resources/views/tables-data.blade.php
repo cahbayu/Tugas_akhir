@@ -27,6 +27,7 @@
     <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
     <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
     <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
     <!-- Template Main CSS File -->
     <link href="assets/css/style.css" rel="stylesheet">
@@ -356,11 +357,14 @@
 
 
                 <div class="col-lg-12">
-
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Data</h5>
-                            <!-- Table with stripped rows -->
+                            <h5 class="card-title mb-0">Data</h5>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <button onclick="exportTableToCSV('logs_data.csv')" class="btn btn-sm btn-outline-primary ms-auto me-3">
+                                    <i class="bi bi-download"></i> Download
+                                </button>
+                            </div>        
                             <table class="table datatable">
                                 <thead>
                                     <tr>
@@ -402,7 +406,40 @@
 
                         </div>
                     </div>
+                    <script>
+                        function exportTableToCSV(filename) {
+                            // Ambil data dari database
+                            var rows = [
+                                ['No', 'Node', 'Ukuran Paket Data', 'Packetloss', 'Start Date'], // Header
+                            ];
 
+                            // Ambil semua baris data
+                            document.querySelectorAll("table tbody tr").forEach((tr, index) => {
+                                rows.push([
+                                    index + 1,
+                                    tr.children[1].innerText, // Node
+                                    tr.children[2].innerText, // Ukuran Paket
+                                    tr.children[3].innerText.replace('%', ''), // Packetloss (hapus %)
+                                    tr.children[4].innerText // Date
+                                ]);
+                            });
+
+                            // Format CSV
+                            let csvContent = rows.map(row => row.join(',')).join('\n');
+                            
+                            // Download
+                            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                            var link = document.createElement("a");
+                            if (link.download !== undefined) {
+                                var url = URL.createObjectURL(blob);
+                                link.setAttribute("href", url);
+                                link.setAttribute("download", filename);
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            }
+                        }
+                        </script>
                 </div>
             </div>
         </section>
