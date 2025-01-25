@@ -106,6 +106,20 @@ class NodeController extends Controller
                        }
                        
                        $status = $this->checkNodeStatus($slaveNode);
+                      
+                       if (isset($slave['sensor_data']) && is_array($slave['sensor_data'])) {
+                        foreach ($slave['sensor_data'] as $sensor) {
+                            if (isset($sensor['sensor_id'], $sensor['moisture_value'])) {
+                                $this->saveSoilMoistureData(
+                                    $sensor['sensor_id'],
+                                    $sensor['moisture_value'],
+                                    $slave_node_id
+                                );
+                            }
+                        }
+                    }
+
+                    $slaveNode->save();
                        $slaveNode->save();
    
                        if ($status !== 'mati') {
