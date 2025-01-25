@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <title>Tables / Data - NiceAdmin Bootstrap Template</title>
+    <title>Records / Data - NiceAdmin Bootstrap Template</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
 
@@ -124,7 +124,7 @@
 
             <li class="nav-item">
                 <a class="nav-link " data-bs-target="#tables-nav" data-bs-toggle="collapse" href="#">
-                    <i class="bi bi-layout-text-window-reverse"></i><span>Tables</span><i
+                    <i class="bi bi-layout-text-window-reverse"></i><span>Records</span><i
                         class="bi bi-chevron-down ms-auto"></i>
                 </a>
                 <ul id="tables-nav" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
@@ -145,11 +145,11 @@
                     </li>
                     <li>
                         <a href="tables-data" class="active">
-                            <i class="bi bi-circle"></i><span>Data Tables</span>
+                            <i class="bi bi-circle"></i><span>Data Log</span>
                         </a>
                     </li>
                 </ul>
-            </li><!-- End Tables Nav -->
+            </li><!-- End Records Nav -->
 
             <li class="nav-heading">Pages</li>
 
@@ -185,7 +185,7 @@
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index">Home</a></li>
-                    <li class="breadcrumb-item">Tables</li>
+                    <li class="breadcrumb-item">Records</li>
                     <li class="breadcrumb-item active">LOG</li>
                 </ol>
             </nav>
