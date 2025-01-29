@@ -81,7 +81,7 @@ class NodeController extends Controller
                
                $status = $this->checkNodeStatus($nodeModel);
                $action = $is_backup_master ? 
-                   "Backup master (Node $node_id) " :
+                   "Backup master " . ucfirst($nodeModel->node_type) :
                    "Master (Node $node_id) ";
                    
                $nodeModel->save();
@@ -91,23 +91,23 @@ class NodeController extends Controller
    
            // Proses slaves
            if (isset($node['slaves']) && is_array($node['slaves'])) {
-               foreach ($node['slaves'] as $slave) {
-                   $slave_node_id = $slave['node_id'] ?? null;
-                   if (!$slave_node_id) continue;
-   
-                   $received_slaves[] = $slave_node_id;
+            foreach ($node['slaves'] as $slave) {
+                $slave_node_id = $slave['node_id'] ?? null;
+                if (!$slave_node_id) continue;
+        
+                $received_slaves[] = $slave_node_id;
+                
+                $slaveNode = Node::find($slave_node_id);
+                if ($slaveNode) {
+                    $slaveNode->online = "Ya";
+                    
+                    if ($slave['payload_size'] > 0) {
+                        $slaveNode->last_active = now();
+                    }
+                    
+                    $status = $this->checkNodeStatus($slaveNode);
                    
-                   $slaveNode = Node::find($slave_node_id);
-                   if ($slaveNode) {
-                       $slaveNode->online = "Ya";
-                       
-                       if ($slave['payload_size'] > 0) {
-                           $slaveNode->last_active = now();
-                       }
-                       
-                       $status = $this->checkNodeStatus($slaveNode);
-                      
-                       if (isset($slave['sensor_data']) && is_array($slave['sensor_data'])) {
+                    if (isset($slave['sensor_data']) && is_array($slave['sensor_data'])) {
                         foreach ($slave['sensor_data'] as $sensor) {
                             if (isset($sensor['sensor_id'], $sensor['moisture_value'])) {
                                 $this->saveSoilMoistureData(
@@ -118,38 +118,40 @@ class NodeController extends Controller
                             }
                         }
                     }
-
+        
                     $slaveNode->save();
-                       $slaveNode->save();
-   
-                       if ($status !== 'mati') {
-                           $this->saveLog(
-                               $slave_node_id, 
-                               "Slave (Node $slave_node_id)",
-                               $slave['payload_size'] ?? 0,
-                               $slave['expected_data'] ?? 0,
-                               $slave['received_data'] ?? 0
-                           );
-                       }
-                   }
-               }
-   
-               // Log missing slaves
-               $missing_slaves = array_diff($expected_slaves, $received_slaves);
-               foreach ($missing_slaves as $missing_slave_id) {
-                   $missingNode = Node::find($missing_slave_id);
-                   if ($missingNode) {
-                       $status = $this->checkNodeStatus($missingNode);
-                       if ($status !== 'mati') {
-                           $this->saveLog(
-                               $missing_slave_id,
-                               "Slave (Node $missing_slave_id) tidak mengirim data",
-                               0, 4, 0
-                           );
-                       }
-                   }
-               }
-           }
+                    $slaveNode->save();
+        
+                    if ($status !== 'mati') {
+                        // Mengubah action menggunakan node_type
+                        $this->saveLog(
+                            $slave_node_id, 
+                            ucfirst($slaveNode->node_type) . " mengirimkan data", // Mengambil node_type dan kapitalisasi huruf pertama
+                            $slave['payload_size'] ?? 0,
+                            $slave['expected_data'] ?? 0,
+                            $slave['received_data'] ?? 0
+                        );
+                    }
+                }
+            }
+        
+            // Log missing slaves
+            $missing_slaves = array_diff($expected_slaves, $received_slaves);
+            foreach ($missing_slaves as $missing_slave_id) {
+                $missingNode = Node::find($missing_slave_id);
+                if ($missingNode) {
+                    $status = $this->checkNodeStatus($missingNode);
+                    if ($status !== 'mati') {
+                        $nodeType = ucfirst($missingNode->node_type);
+                        $this->saveLog(
+                            $missing_slave_id,
+                            "$nodeType tidak mengirim data",
+                            0, 4, 0
+                        );
+                    }
+                }
+            }
+        }
    
            // Log jika master utama tidak mengirim data
            $expected_master = 1;

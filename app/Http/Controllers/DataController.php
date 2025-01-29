@@ -409,18 +409,16 @@ class DataController extends Controller
 
     public function tables_data()
     {
-
         // Ambil semua node beserta data terkait
         $nodes = Node::with(['logs'])->get();
         $logs = Log::all();
-
+    
         $nodeData = [];
         $totalPayload = 0;
         $totalLogs = 0;
-        $totalPacketLoss = 0;
         $totalExpectedData = 0;
         $totalReceivedData = 0;
-
+    
         foreach ($nodes as $node) {
             // Ambil data yang diperlukan per node untuk 1 jam terakhir
             $nodePayload = $node->logs()->sum('payload_size');            
@@ -429,32 +427,52 @@ class DataController extends Controller
                 ->count();
             $nodeExpectedData = $node->logs()->sum('expected_data');
             $nodeReceivedData = $node->logs()->sum('received_data');
-            $nodePacketLoss = $nodeReceivedData > 0
-                ? round((1 - ($nodeReceivedData / $nodeExpectedData)) * 100, 2)
+            
+            // Ambil action dari log terakhir node ini
+            $lastLog = $node->logs()->latest()->first();
+            $lastAction = $lastLog ? $lastLog->action : '-';
+    
+            // Mengubah perhitungan packet loss agar konsisten
+            $nodePacketLoss = $nodeExpectedData > 0
+                ? round((($nodeExpectedData - $nodeReceivedData) / $nodeExpectedData) * 100, 2)
                 : 0;
-
+    
             $nodeData[] = [
                 'name' => $node->node_type,
+                'action' => $lastAction,  // Menambahkan action ke dalam data
                 'payload_size' => $nodePayload,
                 'log_count' => $nodeLogCount,
                 'packet_loss' => $nodePacketLoss,
                 'expected_data' => $nodeExpectedData,
                 'received_data' => $nodeReceivedData,
             ];
-
+    
             // Total
             $totalPayload += $nodePayload;
             $totalLogs += $nodeLogCount;
-            $totalPacketLoss += $nodePacketLoss;
             $totalExpectedData += $nodeExpectedData;
             $totalReceivedData += $nodeReceivedData;
         }
-
+    
+        // Hitung total packet loss dari keseluruhan data
+        $totalPacketLoss = $totalExpectedData > 0
+            ? round((($totalExpectedData - $totalReceivedData) / $totalExpectedData) * 100, 2)
+            : 0;
+    
         $averagePayload = count($nodeData) > 0
             ? round($totalPayload / count($nodeData), 2)
             : 0;
-
-        return view('tables-data', compact('nodeData', 'logs', 'totalPayload', 'totalLogs', 'totalPacketLoss', 'totalExpectedData', 'totalReceivedData', 'averagePayload'));
+    
+        return view('tables-data', compact(
+            'nodeData',
+            'logs',
+            'totalPayload',
+            'totalLogs',
+            'totalPacketLoss',
+            'totalExpectedData',
+            'totalReceivedData',
+            'averagePayload'
+        ));
     }
 
 

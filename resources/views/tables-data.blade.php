@@ -369,7 +369,8 @@
                                 <thead>
                                     <tr>
                                         <th style="text-align: center;">No</th>
-                                        <th style="text-align: center;">Node</th>
+                                        <th style="text-align: center;">Peran</th>
+                                        <th style="text-align: center;">Tipe Node</th>
                                         <th style="text-align: center;">Ukuran Paket Data</th>
                                         <th style="text-align: center;">Packetloss</th>
                                         <th style="text-align: center;" data-type="date" data-format="YYYY/DD/MM">
@@ -380,8 +381,8 @@
                                     @foreach ($logs as $log)
                                         <tr style="text-align: center;">
                                             <td>{{ $loop->iteration }}</td>
+                                            <td>{{ $log->action }}</td>
                                             <td>{{ $log->node_type }}</td>
-
                                             <td>{{ $log->payload_size }}</td>
                                             @php
                                                 // Pastikan expected_data bukan nol untuk menghindari division by zero
