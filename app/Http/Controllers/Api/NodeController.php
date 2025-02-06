@@ -120,7 +120,6 @@ class NodeController extends Controller
                     }
         
                     $slaveNode->save();
-                    $slaveNode->save();
         
                     if ($status !== 'mati') {
                         // Mengubah action menggunakan node_type

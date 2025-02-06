@@ -267,7 +267,7 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body mt-4">
-                            <h5 class="card-title">Data Payload <span id="data-title">| Slave 2</span></h5>
+                            <h5 class="card-title">Data Payload <span id="data-title">| Slave 1</span></h5>
                             <!-- Line Chart -->
                             <div id="lineChart"></div>
 
@@ -300,7 +300,7 @@
                                         xaxis: {
                                             categories,
                                             title: {
-                                                text: "Time (HH:mm)"
+                                                text: "Time"
                                             }
                                         },
                                         yaxis: {
@@ -350,7 +350,8 @@
                                             time: key,
                                             sent: value.sent,
                                             lost: value.lost,
-                                        }));
+                                        }))
+                                        .reverse();
                                         return {
                                             categories: data.map(d => d.time),
                                             sentData: data.map(d => d.sent),

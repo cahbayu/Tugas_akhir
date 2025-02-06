@@ -300,7 +300,7 @@
                                         xaxis: {
                                             categories,
                                             title: {
-                                                text: "Byte"
+                                                text: "Time"
                                             }
                                         },
                                         yaxis: {
@@ -350,7 +350,8 @@
                                             time: key,
                                             sent: value.sent,
                                             lost: value.lost,
-                                        }));
+                                        }))
+                                        .reverse();
                                         return {
                                             categories: data.map(d => d.time),
                                             sentData: data.map(d => d.sent),

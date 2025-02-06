@@ -345,7 +345,7 @@
                             <!-- Bagian total packet loss -->
                             <div class="mt-3">
                                 <h6 id="total-packetloss">
-                                    Total Packetloss: {{ round($totalPacketLoss, 2) }}% ({{ $totalReceivedData }})
+                                    Total Packetloss: {{ round($totalPacketLoss, 2) }}% (Data Masuk: {{ $totalReceivedData }})
                                 </h6>
                             </div>
                         </div>

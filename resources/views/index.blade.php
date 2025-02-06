@@ -288,7 +288,7 @@
                                     <h5 class="card-title">Data Yang Diterima</h5>
                                     <div id="areaChart"></div>
                          
-                                    <script>
+                                <script>
                                     document.addEventListener("DOMContentLoaded", () => {
                                         const chart = new ApexCharts(document.querySelector("#areaChart"), {
                                             series: [
@@ -342,41 +342,64 @@
                                         chart.render();
 
                                         function updateChart(range = 'hourly') {
-                                            fetch(`/api/soil-moisture-data?range=${range}`)
-                                                .then(response => response.json())
-                                                .then(({ nodes }) => {
-                                                    if (!nodes || nodes.length === 0) return;
+                                        fetch(`/api/soil-moisture-data?range=${range}`)
+                                            .then(response => response.json())
+                                            .then(({ nodes }) => {
+                                                if (!nodes || nodes.length === 0) return;
 
-                                                    const timestamps = nodes[0].data[0].timestamps;
-                                                    let totalByTimestamp = new Array(timestamps.length).fill(0);
-
-                                                    nodes.forEach(node => {
-                                                        node.data[0].data_count.forEach((count, i) => {
-                                                            totalByTimestamp[i] += count;
+                                                // Kumpulkan semua timestamps yang unik dari semua node
+                                                let allTimestamps = new Set();
+                                                nodes.forEach(node => {
+                                                    if (node.data && node.data[0] && node.data[0].timestamps) {
+                                                        node.data[0].timestamps.forEach(timestamp => {
+                                                            allTimestamps.add(timestamp);
                                                         });
-                                                    });
+                                                    }
+                                                });
+                                                
+                                                // Convert ke array dan sort
+                                                let timestamps = Array.from(allTimestamps).sort();
 
-                                                    const series = [{
-                                                        name: 'Total Data',
-                                                        data: totalByTimestamp
-                                                    }];
+                                                // Inisialisasi array total dengan panjang timestamps
+                                                let totalByTimestamp = new Array(timestamps.length).fill(0);
 
-                                                    nodes.forEach(node => {
-                                                        series.push({
-                                                            name: node.node_type === 'master' ? 'Master' :
-                                                                node.node_type === 'slave1' ? 'Slave 1' :
-                                                                    node.node_type === 'slave2' ? 'Slave 2' : 'Slave 3',
-                                                            data: node.data[0].data_count
+                                                // Prepare series data
+                                                const series = [{
+                                                    name: 'Total Data',
+                                                    data: totalByTimestamp
+                                                }];
+
+                                                // Proses data untuk setiap node
+                                                nodes.forEach(node => {
+                                                    let nodeData = new Array(timestamps.length).fill(0);
+                                                    
+                                                    // Jika node memiliki data
+                                                    if (node.data && node.data[0]) {
+                                                        node.data[0].timestamps.forEach((timestamp, index) => {
+                                                            const timestampIndex = timestamps.indexOf(timestamp);
+                                                            if (timestampIndex !== -1) {
+                                                                nodeData[timestampIndex] = node.data[0].data_count[index];
+                                                                totalByTimestamp[timestampIndex] += node.data[0].data_count[index];
+                                                            }
                                                         });
-                                                    });
+                                                    }
 
-                                                    chart.updateOptions({
-                                                        xaxis: { categories: timestamps },
-                                                        series: series
+                                                    series.push({
+                                                        name: node.node_type === 'master' ? 'Master' :
+                                                            node.node_type === 'slave1' ? 'Slave 1' :
+                                                            node.node_type === 'slave2' ? 'Slave 2' : 'Slave 3',
+                                                        data: nodeData
                                                     });
-                                                })
-                                                .catch(error => console.error('Error:', error));
-                                        }
+                                                });
+
+                                                // Update chart
+                                                chart.updateOptions({
+                                                    xaxis: { categories: timestamps },
+                                                    series: series
+                                                });
+                                            })
+                                            .catch(error => console.error('Error:', error));
+                                    }
 
                                         // Initial load
                                         updateChart();
@@ -394,7 +417,7 @@
                                         });
                                     });
 
-                                    </script>
+                                </script>
                                 </div>
                             </div>
                          </div><!-- End Reports -->

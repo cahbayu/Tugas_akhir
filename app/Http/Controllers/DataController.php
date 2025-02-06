@@ -179,9 +179,12 @@ class DataController extends Controller
         ->map(function ($group) {
             return $group->sum('payload_size');
         });
-
+        
         // Siapkan data untuk packet loss
-        $packetLossData = $nodeLogs->groupBy(function ($log) {
+        $packetLossData = $node->logs()
+        ->orderBy('created_at', 'desc')  // Tambahkan ini untuk memastikan urutan
+        ->get()
+        ->groupBy(function ($log) {
             return $log->created_at->format('H:00');
         })->map(function ($group) {
             $sent = $group->sum('expected_data');
@@ -190,7 +193,7 @@ class DataController extends Controller
                 'sent' => $sent,
                 'lost' => max($lost, 0),
             ];
-        })->sortKeys();
+        });
 
         // Ambil data sensor terbaru
         $sensorDataByTime = [];
@@ -269,14 +272,21 @@ class DataController extends Controller
             : 0;
 
         // Siapkan data untuk line chart
-        $lineChartData = $nodeLogs->groupBy(function ($log) {
+        $lineChartData = $node->logs()
+        ->orderBy('created_at', 'asc')
+        ->get()
+        ->groupBy(function ($log) {
             return $log->created_at->format('H:00');
-        })->map(function ($group) {
+        })
+        ->map(function ($group) {
             return $group->sum('payload_size');
-        })->sortKeys();
+        });
 
         // Siapkan data untuk packet loss
-        $packetLossData = $nodeLogs->groupBy(function ($log) {
+        $packetLossData = $node->logs()
+        ->orderBy('created_at', 'desc')  // Tambahkan ini untuk memastikan urutan
+        ->get()
+        ->groupBy(function ($log) {
             return $log->created_at->format('H:00');
         })->map(function ($group) {
             $sent = $group->sum('expected_data');
@@ -285,7 +295,7 @@ class DataController extends Controller
                 'sent' => $sent,
                 'lost' => max($lost, 0),
             ];
-        })->sortKeys();
+        });
 
         // Ambil data sensor terbaru
         $sensorDataByTime = [];
@@ -362,14 +372,21 @@ class DataController extends Controller
             : 0;
 
         // Siapkan data untuk line chart
-        $lineChartData = $nodeLogs->groupBy(function ($log) {
+        $lineChartData = $node->logs()
+        ->orderBy('created_at', 'asc')
+        ->get()
+        ->groupBy(function ($log) {
             return $log->created_at->format('H:00');
-        })->map(function ($group) {
+        })
+        ->map(function ($group) {
             return $group->sum('payload_size');
-        })->sortKeys();
+        });
 
         // Siapkan data untuk packet loss
-        $packetLossData = $nodeLogs->groupBy(function ($log) {
+        $packetLossData = $node->logs()
+        ->orderBy('created_at', 'desc')  // Tambahkan ini untuk memastikan urutan
+        ->get()
+        ->groupBy(function ($log) {
             return $log->created_at->format('H:00');
         })->map(function ($group) {
             $sent = $group->sum('expected_data');
@@ -378,7 +395,7 @@ class DataController extends Controller
                 'sent' => $sent,
                 'lost' => max($lost, 0),
             ];
-        })->sortKeys();
+        });
 
         // Ambil data sensor terbaru
         $sensorDataByTime = [];
@@ -416,6 +433,7 @@ class DataController extends Controller
         $nodeData = [];
         $totalPayload = 0;
         $totalLogs = 0;
+        // Tidak perlu inisialisasi $totalPacketLoss di sini karena akan dihitung di akhir
         $totalExpectedData = 0;
         $totalReceivedData = 0;
     
@@ -428,18 +446,13 @@ class DataController extends Controller
             $nodeExpectedData = $node->logs()->sum('expected_data');
             $nodeReceivedData = $node->logs()->sum('received_data');
             
-            // Ambil action dari log terakhir node ini
-            $lastLog = $node->logs()->latest()->first();
-            $lastAction = $lastLog ? $lastLog->action : '-';
-    
-            // Mengubah perhitungan packet loss agar konsisten
+            // Hitung packet loss per node
             $nodePacketLoss = $nodeExpectedData > 0
                 ? round((($nodeExpectedData - $nodeReceivedData) / $nodeExpectedData) * 100, 2)
                 : 0;
     
             $nodeData[] = [
                 'name' => $node->node_type,
-                'action' => $lastAction,  // Menambahkan action ke dalam data
                 'payload_size' => $nodePayload,
                 'log_count' => $nodeLogCount,
                 'packet_loss' => $nodePacketLoss,
@@ -450,17 +463,18 @@ class DataController extends Controller
             // Total
             $totalPayload += $nodePayload;
             $totalLogs += $nodeLogCount;
+            // Hapus $totalPacketLoss += $nodePacketLoss karena ini tidak tepat
             $totalExpectedData += $nodeExpectedData;
             $totalReceivedData += $nodeReceivedData;
         }
     
-        // Hitung total packet loss dari keseluruhan data
-        $totalPacketLoss = $totalExpectedData > 0
-            ? round((($totalExpectedData - $totalReceivedData) / $totalExpectedData) * 100, 2)
-            : 0;
-    
         $averagePayload = count($nodeData) > 0
             ? round($totalPayload / count($nodeData), 2)
+            : 0;
+    
+        // Hitung total packet loss berdasarkan total keseluruhan data
+        $totalPacketLoss = $totalExpectedData > 0
+            ? round((($totalExpectedData - $totalReceivedData) / $totalExpectedData) * 100, 2)
             : 0;
     
         return view('tables-data', compact(
@@ -478,15 +492,7 @@ class DataController extends Controller
 
 
     public function getSoilMoistureData(Request $request)
-    {
-        // Ambil parameter dari request untuk menentukan resolusi waktu (default: hour)
-        $resolution = $request->get('resolution', 'hour'); // Default 'hour'
-    
-        // Validasi resolusi (hanya 'minute' dan 'hour' yang diperbolehkan)
-        if (!in_array($resolution, ['minute', 'hour'])) {
-            return response()->json(['error' => 'Invalid resolution'], 400);
-        }
-    
+    {    
         $nodes = Node::with(['logs' => function ($query) {
             $query->orderBy('created_at', 'asc');
         }])->get();
@@ -508,15 +514,12 @@ class DataController extends Controller
                 ]]
             ];
     
-            // Grup data berdasarkan resolusi waktu
+            // Grup data per jam
             $logs = $node->logs()
                 ->orderBy('created_at', 'asc')
                 ->get()
-                ->groupBy(function ($log) use ($resolution) {
-                    // Grup berdasarkan format waktu yang diminta
-                    return $resolution === 'minute'
-                        ? $log->created_at->format('H:i') // Per menit
-                        : $log->created_at->format('H:00'); // Per jam
+                ->groupBy(function ($log) {
+                    return $log->created_at->format('H:00');
                 });
     
             foreach ($logs as $timestamp => $logGroup) {
