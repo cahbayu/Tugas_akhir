@@ -272,65 +272,142 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body mt-4">
-                            <h5 class="card-title">Data Payload <span id="data-title">| Slave 1</span></h5>
+                            <h5 class="card-title">Data Payload <span id="data-title">| Slave 2</span></h5>
                             <!-- Line Chart -->
                             <div id="lineChart"></div>
 
                             <script>
-                                document.addEventListener("DOMContentLoaded", () => {
-                                    const lineChartData = @json($lineChartData);
+                            document.addEventListener("DOMContentLoaded", () => {
+                                const minuteData = @json($minuteData);
+                                const hourlyData = @json($hourlyData);
+                                
+                                // Transform data
+                                const minuteSeries = Object.entries(minuteData).map(([time, data]) => ({
+                                    x: new Date(data.timestamp * 1000),
+                                    y: data.payload_size
+                                })).sort((a, b) => a.x - b.x);
 
-                                    const categories = Object.keys(lineChartData);
-                                    const data = Object.values(lineChartData);
+                                const hourlySeries = Object.entries(hourlyData).map(([time, data]) => ({
+                                    x: new Date(data.timestamp * 1000),
+                                    y: data.payload_size
+                                })).sort((a, b) => a.x - b.x);
 
-                                    const chart = new ApexCharts(document.querySelector("#lineChart"), {
-                                        series: [{
-                                            name: "Payload Size",
-                                            data
-                                        }],
-                                        chart: {
-                                            height: 350,
-                                            type: 'line',
-                                            zoom: {
-                                                enabled: true
+                                let currentSeries = hourlySeries;
+                                const zoomThreshold = 1000 * 60 * 60 * 3; // 3 jam dalam milliseconds
+
+                                const chart = new ApexCharts(document.querySelector("#lineChart"), {
+                                    series: [{
+                                        name: "Payload Size",
+                                        data: currentSeries
+                                    }],
+                                    chart: {
+                                        height: 350,
+                                        type: 'line',
+                                        zoom: {
+                                            enabled: true,
+                                            type: 'x',
+                                            autoScaleYaxis: true
+                                        },
+                                        toolbar: {
+                                            show: true,
+                                            tools: {
+                                                download: true,
+                                                selection: true,
+                                                zoom: true,
+                                                zoomin: true,
+                                                zoomout: true,
+                                                pan: true,
+                                                reset: true
                                             }
                                         },
-                                        colors: ['#FF6B6B'],
-                                        dataLabels: {
-                                            enabled: false
-                                        },
-                                        stroke: {
-                                            curve: 'smooth'
-                                        },
-                                        xaxis: {
-                                            categories,
-                                            title: {
-                                                text: "Time"
-                                            }
-                                        },
-                                        yaxis: {
-                                            title: {
-                                                text: "Payload Size (Bytes)"
+                                        events: {
+                                            beforeZoom: (chartContext, { xaxis }) => {
+                                                const timeRange = xaxis.max - xaxis.min;
+                                                const newData = timeRange < zoomThreshold ? minuteSeries : hourlySeries;
+                                                
+                                                chart.updateSeries([{
+                                                    name: "Payload Size",
+                                                    data: newData
+                                                }]);
+                                                
+                                                return {
+                                                    xaxis: {
+                                                        min: xaxis.min,
+                                                        max: xaxis.max
+                                                    }
+                                                };
                                             },
-                                            labels: {
-                                                formatter: function(value) {
-                                                    return value + " B";
+                                            zoomed: (chartContext, { xaxis }) => {
+                                                const timeRange = xaxis.max - xaxis.min;
+                                                if (timeRange >= zoomThreshold && chart.w.globals.seriesData[0] === minuteSeries) {
+                                                    chart.updateSeries([{
+                                                        name: "Payload Size",
+                                                        data: hourlySeries
+                                                    }]);
                                                 }
-                                            }
-                                        },
-                                        tooltip: {
-                                            shared: true,
-                                            intersect: false,
-                                            y: {
-                                                formatter: function(value) {
-                                                    return value + " B";
-                                                }
+                                            },
+                                            beforeResetZoom: () => {
+                                                chart.updateSeries([{
+                                                    name: "Payload Size",
+                                                    data: hourlySeries
+                                                }]);
                                             }
                                         }
-                                    });
-
-                                    chart.render();
+                                    },
+                                    colors: ['#FF6B6B'],
+                                    dataLabels: {
+                                        enabled: false
+                                    },
+                                    stroke: {
+                                        curve: 'smooth',
+                                        width: 2
+                                    },
+                                    xaxis: {
+                                        type: 'datetime',
+                                        title: {
+                                            text: "Time"
+                                        },
+                                        labels: {
+                                            datetimeFormatter: {
+                                                year: 'yyyy',
+                                                month: 'MMM \'yy',
+                                                day: 'dd MMM',
+                                                hour: 'HH:mm'
+                                            }
+                                        }
+                                    },
+                                    yaxis: {
+                                        title: {
+                                            text: "Payload Size (Bytes)"
+                                        },
+                                        labels: {
+                                            formatter: function(value) {
+                                                return Math.round(value) + " B";
+                                            }
+                                        }
+                                    },
+                                    tooltip: {
+                                        shared: true,
+                                        intersect: false,
+                                        x: {
+                                            format: 'dd MMM yyyy HH:mm'
+                                        },
+                                        y: {
+                                            formatter: function(value) {
+                                                return Math.round(value) + " B";
+                                            }
+                                        }
+                                    },
+                                    markers: {
+                                        size: 4,
+                                        hover: {
+                                            size: 6
+                                        }
+                                    }
                                 });
+
+                                chart.render();
+                            });
                             </script>
                             <!-- End Line Chart -->
                         </div>
@@ -347,85 +424,161 @@
                             <div id="areaChart"></div>
 
                             <script>
-                                document.addEventListener("DOMContentLoaded", () => {
-                                    const packetLossData = @json($packetLossData);
+                            document.addEventListener("DOMContentLoaded", () => {
+                                const minuteData = @json($packetLossMinute);
+                                const hourlyData = @json($packetLossHourly);
+                                
+                                // Transform data
+                                const minuteSeries = Object.entries(minuteData).map(([time, data]) => [
+                                    {
+                                        x: new Date(data.timestamp * 1000),
+                                        y: data.received
+                                    },
+                                    {
+                                        x: new Date(data.timestamp * 1000),
+                                        y: data.lost
+                                    }
+                                ]).reduce((acc, [received, lost]) => {
+                                    acc[0].push(received);
+                                    acc[1].push(lost);
+                                    return acc;
+                                }, [[], []]);
 
-                                    const getDataByRange = (range) => {
-                                        const data = Object.entries(packetLossData).map(([key, value]) => ({
-                                            time: key,
-                                            sent: value.sent,
-                                            lost: value.lost,
-                                        }))
-                                        .reverse();
-                                        return {
-                                            categories: data.map(d => d.time),
-                                            sentData: data.map(d => d.sent),
-                                            lostData: data.map(d => d.lost),
-                                        };
-                                    };
+                                const hourlySeries = Object.entries(hourlyData).map(([time, data]) => [
+                                    {
+                                        x: new Date(data.timestamp * 1000),
+                                        y: data.received
+                                    },
+                                    {
+                                        x: new Date(data.timestamp * 1000),
+                                        y: data.lost
+                                    }
+                                ]).reduce((acc, [received, lost]) => {
+                                    acc[0].push(received);
+                                    acc[1].push(lost);
+                                    return acc;
+                                }, [[], []]);
 
-                                    let chart = new ApexCharts(document.querySelector("#areaChart"), {
-                                        series: [{
-                                                name: "Total Data Terkirim",
-                                                data: []
-                                            },
-                                            {
-                                                name: "Packet Loss",
-                                                data: []
-                                            },
-                                        ],
-                                        chart: {
-                                            height: 350,
-                                            type: 'line',
-                                            zoom: {
-                                                enabled: true
-                                            },
-                                        },
-                                        stroke: {
-                                            curve: 'smooth'
-                                        },
-                                        xaxis: {
-                                            categories: []
-                                        },
-                                        tooltip: {
-                                            shared: true,
-                                            intersect: false
-                                        },
-                                        colors: ['#00b894', '#d63031'],
-                                        grid: {
-                                            row: {
-                                                colors: ['#f3f3f3', 'transparent'],
-                                                opacity: 0.5
-                                            },
-                                        },
-                                    });
+                                let currentSeries = [hourlySeries[0], hourlySeries[1]];
+                                const zoomThreshold = 1000 * 60 * 60 * 3; // 3 jam dalam milliseconds
 
-                                    chart.render();
-
-                                    window.showPacketLoss = (range) => {
-                                        const {
-                                            categories,
-                                            sentData,
-                                            lostData
-                                        } = getDataByRange(range);
-                                        chart.updateOptions({
-                                            xaxis: {
-                                                categories
-                                            },
-                                            series: [{
-                                                    name: "Total Data Terkirim",
-                                                    data: sentData
-                                                },
-                                                {
+                                const chart = new ApexCharts(document.querySelector("#areaChart"), {
+                                    series: [{
+                                        name: "Data Diterima",
+                                        data: currentSeries[0]
+                                    }, {
+                                        name: "Packet Loss",
+                                        data: currentSeries[1]
+                                    }],
+                                    chart: {
+                                        height: 350,
+                                        type: 'line',
+                                        zoom: {
+                                            enabled: true,
+                                            type: 'x',
+                                            autoScaleYaxis: true
+                                        },
+                                        toolbar: {
+                                            show: true,
+                                            tools: {
+                                                download: true,
+                                                selection: true,
+                                                zoom: true,
+                                                zoomin: true,
+                                                zoomout: true,
+                                                pan: true,
+                                                reset: true
+                                            }
+                                        },
+                                        events: {
+                                            beforeZoom: (chartContext, { xaxis }) => {
+                                                const timeRange = xaxis.max - xaxis.min;
+                                                const newData = timeRange < zoomThreshold ? minuteSeries : hourlySeries;
+                                                
+                                                chart.updateSeries([{
+                                                    name: "Data Diterima",
+                                                    data: newData[0]
+                                                }, {
                                                     name: "Packet Loss",
-                                                    data: lostData
-                                                },
-                                            ],
-                                        });
-                                    };
-
-                                    showPacketLoss('hourly');
+                                                    data: newData[1]
+                                                }]);
+                                                
+                                                return {
+                                                    xaxis: {
+                                                        min: xaxis.min,
+                                                        max: xaxis.max
+                                                    }
+                                                };
+                                            },
+                                            zoomed: (chartContext, { xaxis }) => {
+                                                const timeRange = xaxis.max - xaxis.min;
+                                                if (timeRange >= zoomThreshold && chart.w.globals.seriesData[0] === minuteSeries[0]) {
+                                                    chart.updateSeries([{
+                                                        name: "Data Diterima",
+                                                        data: hourlySeries[0]
+                                                    }, {
+                                                        name: "Packet Loss",
+                                                        data: hourlySeries[1]
+                                                    }]);
+                                                }
+                                            },
+                                            beforeResetZoom: () => {
+                                                chart.updateSeries([{
+                                                    name: "Data Diterima",
+                                                    data: hourlySeries[0]
+                                                }, {
+                                                    name: "Packet Loss",
+                                                    data: hourlySeries[1]
+                                                }]);
+                                            }
+                                        }
+                                    },
+                                    colors: ['#00b894', '#d63031'],
+                                    stroke: {
+                                        curve: 'smooth',
+                                        width: 2
+                                    },
+                                    xaxis: {
+                                        type: 'datetime',
+                                        labels: {
+                                            datetimeFormatter: {
+                                                year: 'yyyy',
+                                                month: 'MMM \'yy',
+                                                day: 'dd MMM',
+                                                hour: 'HH:mm'
+                                            }
+                                        }
+                                    },
+                                    yaxis: {
+                                        labels: {
+                                            formatter: function(value) {
+                                                return Math.round(value);
+                                            }
+                                        }
+                                    },
+                                    tooltip: {
+                                        shared: true,
+                                        intersect: false,
+                                        x: {
+                                            format: 'dd MMM yyyy HH:mm'
+                                        }
+                                    },
+                                    grid: {
+                                        row: {
+                                            colors: ['#f3f3f3', 'transparent'],
+                                            opacity: 0.5
+                                        }
+                                    },
+                                    markers: {
+                                        size: 4,
+                                        hover: {
+                                            size: 6
+                                        }
+                                    }
                                 });
+
+                                chart.render();
+                            });
                             </script>
                         </div>
 

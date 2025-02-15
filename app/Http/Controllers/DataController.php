@@ -79,7 +79,7 @@ class DataController extends Controller
                     $latestSensorData[] = [
                         'sensor_name' => $sensor->sensor_name,
                         'moisture_value' => $latestData->moisture_value,
-                        'created_at' => $latestData->created_at->format('Y/m/d H:i:s'),
+                        'created_at' => $latestData->created_at->format('Y/m/d H:i'),
                     ];
                 }
             }
@@ -176,10 +176,24 @@ class DataController extends Controller
             : 0;
     
         // Packet Loss Data (tetap per jam)
-        $packetLossData = $logs->groupBy(function ($log) {
+        $packetLossMinute = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:i');
+        })->map(function ($group) {
+            $sent = $group->sum('received_data');
+            $lost = $group->sum('expected_data') - $group->sum('received_data');
+            return [
+                'sent' => $sent,
+                'lost' => max($lost, 0),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:i:s')
+            ];
+        });
+        
+        // Data per jam untuk packet loss
+        $packetLossHourly = $logs->groupBy(function ($log) {
             return $log->created_at->format('Y-m-d H:00');
         })->map(function ($group) {
-            $sent = $group->sum('expected_data');
+            $sent = $group->sum('received_data');
             $lost = $group->sum('expected_data') - $group->sum('received_data');
             return [
                 'sent' => $sent,
@@ -196,31 +210,88 @@ class DataController extends Controller
             'packetLoss',
             'minuteData',
             'hourlyData',
-            'packetLossData'
+            'packetLossMinute',  // Data packet loss per menit
+            'packetLossHourly'
         ));
     }
 
     public function tables_slave1()
     {
-        // Ambil Node 1 berdasarkan node_type dengan huruf kecil tanpa spasi
         $node = Node::with(['sensors.soilMoistureData', 'logs'])->where('node_type', 'slave1')->first();
-
+    
         if (!$node) {
             return view('tables-slave1', [
                 'averageHumidity' => 'N/A',
                 'totalPayload' => 'N/A',
                 'logTotal' => 0,
                 'packetLoss' => 'N/A',
-                'lineChartData' => [],
-                'packetLossData' => [],
-                'latestSensorData' => [], // Tambahkan variabel ini
+                'minuteData' => [],
+                'hourlyData' => [],
+                'packetLossMinute' => [],
+                'packetLossHourly' => [],
+                'sensorDataByTime' => []
             ]);
         }
-
+    
+        // Ambil semua logs
+        $logs = $node->logs()->orderBy('created_at', 'asc')->get();
+    
+        // Data payload per menit
+        $minuteData = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:i');
+        })->map(function ($group) {
+            return [
+                'payload_size' => $group->sum('payload_size'),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:i:s')
+            ];
+        });
+    
+        // Data payload per jam
+        $hourlyData = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:00');
+        })->map(function ($group) {
+            return [
+                'payload_size' => $group->sum('payload_size'),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:00:00')
+            ];
+        });
+    
+        // Data packet loss per menit
+        $packetLossMinute = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:i');
+        })->map(function ($group) {
+            $received = $group->sum('received_data');
+            $expected = $group->sum('expected_data');
+            $lost = $expected - $received;
+            return [
+                'received' => $received,
+                'lost' => max($lost, 0),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:i:s')
+            ];
+        });
+    
+        // Data packet loss per jam
+        $packetLossHourly = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:00');
+        })->map(function ($group) {
+            $received = $group->sum('received_data');
+            $expected = $group->sum('expected_data');
+            $lost = $expected - $received;
+            return [
+                'received' => $received,
+                'lost' => max($lost, 0),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:00:00')
+            ];
+        });
+    
         // Hitung rata-rata kelembaban
         $nodeMoistureValue = 0;
         $nodeSoilMoistureCount = 0;
-
+    
         foreach ($node->sensors as $sensor) {
             $sensorMoistureData = $sensor->soilMoistureData()->get();
             foreach ($sensorMoistureData as $data) {
@@ -228,75 +299,48 @@ class DataController extends Controller
                 $nodeSoilMoistureCount++;
             }
         }
-
+    
         $averageHumidity = $nodeSoilMoistureCount > 0
             ? round($nodeMoistureValue / $nodeSoilMoistureCount, 2)
             : 'N/A';
-
-        // Hitung total payload data
-        $nodeLogs = $node->logs()->get();
-        $totalPayload = $nodeLogs->sum('payload_size');
-
-        // Hitung jumlah log
-        $logTotal = $nodeLogs->where('received_data', '!=', 0)->count();
-
+    
+        // Hitung total payload dan log
+        $totalPayload = $logs->sum('payload_size');
+        $logTotal = $logs->where('received_data', '!=', 0)->count();
+    
         // Hitung packet loss
-        $expectedData = $nodeLogs->sum('expected_data');
-        $receivedData = $nodeLogs->sum('received_data');
+        $expectedData = $logs->sum('expected_data');
+        $receivedData = $logs->sum('received_data');
         $packetLoss = $expectedData > 0
             ? round((($expectedData - $receivedData) / $expectedData) * 100, 2)
             : 0;
-
-        // Siapkan data untuk line chart
-        $lineChartData = $node->logs()
-        ->orderBy('created_at', 'asc')
-        ->get()
-        ->groupBy(function ($log) {
-            return $log->created_at->format('H:00');
-        })
-        ->map(function ($group) {
-            return $group->sum('payload_size');
-        });
-        
-        // Siapkan data untuk packet loss
-        $packetLossData = $node->logs()
-        ->orderBy('created_at', 'desc')  // Tambahkan ini untuk memastikan urutan
-        ->get()
-        ->groupBy(function ($log) {
-            return $log->created_at->format('H:00');
-        })->map(function ($group) {
-            $sent = $group->sum('expected_data');
-            $lost = $group->sum('expected_data') - $group->sum('received_data');
-            return [
-                'sent' => $sent,
-                'lost' => max($lost, 0),
-            ];
-        });
-
+    
         // Ambil data sensor terbaru
         $sensorDataByTime = [];
         foreach ($node->sensors as $sensor) {
-           $allData = $sensor->soilMoistureData()->orderBy('created_at', 'desc')->get();
-           foreach ($allData as $data) {
-               $timestamp = $data->created_at->format('Y-m-d H:i:s');
-               if (!isset($sensorDataByTime[$timestamp])) {
-                   $sensorDataByTime[$timestamp] = [
-                       'timestamp' => $timestamp,
-                       'sensors' => []
-                   ];
-               }
-               $sensorDataByTime[$timestamp]['sensors'][$sensor->sensor_id] = $data->moisture_value;
-           }
+            $allData = $sensor->soilMoistureData()->orderBy('created_at', 'desc')->get();
+            foreach ($allData as $data) {
+                $timestamp = $data->created_at->format('Y-m-d H:i');
+                if (!isset($sensorDataByTime[$timestamp])) {
+                    $sensorDataByTime[$timestamp] = [
+                        'timestamp' => $timestamp,
+                        'sensors' => []
+                    ];
+                }
+                $sensorDataByTime[$timestamp]['sensors'][$sensor->sensor_id] = $data->moisture_value;
+            }
         }
-        
+    
         return view('tables-slave1', compact(
             'averageHumidity',
-            'totalPayload', 
+            'totalPayload',
             'logTotal',
             'packetLoss',
-            'lineChartData',
-            'packetLossData',
-            'sensorDataByTime' // Ganti latestSensorData dengan sensorData
+            'minuteData',
+            'hourlyData',
+            'packetLossMinute',
+            'packetLossHourly',
+            'sensorDataByTime'
         ));
     }
 
@@ -304,25 +348,81 @@ class DataController extends Controller
 
     public function tables_slave2()
     {
-        // Ambil Node 1 berdasarkan node_type dengan huruf kecil tanpa spasi
         $node = Node::with(['sensors.soilMoistureData', 'logs'])->where('node_type', 'slave2')->first();
-
+    
         if (!$node) {
             return view('tables-slave2', [
                 'averageHumidity' => 'N/A',
                 'totalPayload' => 'N/A',
                 'logTotal' => 0,
                 'packetLoss' => 'N/A',
-                'lineChartData' => [],
-                'packetLossData' => [],
-                'latestSensorData' => [], // Tambahkan variabel ini
+                'minuteData' => [],
+                'hourlyData' => [],
+                'packetLossMinute' => [],
+                'packetLossHourly' => [],
+                'sensorDataByTime' => []
             ]);
         }
-
+    
+        // Ambil semua logs
+        $logs = $node->logs()->orderBy('created_at', 'asc')->get();
+    
+        // Data payload per menit
+        $minuteData = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:i');
+        })->map(function ($group) {
+            return [
+                'payload_size' => $group->sum('payload_size'),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:i:s')
+            ];
+        });
+    
+        // Data payload per jam
+        $hourlyData = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:00');
+        })->map(function ($group) {
+            return [
+                'payload_size' => $group->sum('payload_size'),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:00:00')
+            ];
+        });
+    
+        // Data packet loss per menit
+        $packetLossMinute = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:i');
+        })->map(function ($group) {
+            $received = $group->sum('received_data');
+            $expected = $group->sum('expected_data');
+            $lost = $expected - $received;
+            return [
+                'received' => $received,
+                'lost' => max($lost, 0),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:i:s')
+            ];
+        });
+    
+        // Data packet loss per jam
+        $packetLossHourly = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:00');
+        })->map(function ($group) {
+            $received = $group->sum('received_data');
+            $expected = $group->sum('expected_data');
+            $lost = $expected - $received;
+            return [
+                'received' => $received,
+                'lost' => max($lost, 0),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:00:00')
+            ];
+        });
+    
         // Hitung rata-rata kelembaban
         $nodeMoistureValue = 0;
         $nodeSoilMoistureCount = 0;
-
+    
         foreach ($node->sensors as $sensor) {
             $sensorMoistureData = $sensor->soilMoistureData()->get();
             foreach ($sensorMoistureData as $data) {
@@ -330,99 +430,128 @@ class DataController extends Controller
                 $nodeSoilMoistureCount++;
             }
         }
-
+    
         $averageHumidity = $nodeSoilMoistureCount > 0
             ? round($nodeMoistureValue / $nodeSoilMoistureCount, 2)
             : 'N/A';
-
-        // Hitung total payload data
-        $nodeLogs = $node->logs()->get();
-        $totalPayload = $nodeLogs->sum('payload_size');
-
-        // Hitung jumlah log
-        $logTotal = $nodeLogs->where('received_data', '!=', 0)->count();
-
+    
+        // Hitung total payload dan log
+        $totalPayload = $logs->sum('payload_size');
+        $logTotal = $logs->where('received_data', '!=', 0)->count();
+    
         // Hitung packet loss
-        $expectedData = $nodeLogs->sum('expected_data');
-        $receivedData = $nodeLogs->sum('received_data');
+        $expectedData = $logs->sum('expected_data');
+        $receivedData = $logs->sum('received_data');
         $packetLoss = $expectedData > 0
             ? round((($expectedData - $receivedData) / $expectedData) * 100, 2)
             : 0;
-
-        // Siapkan data untuk line chart
-        $lineChartData = $node->logs()
-        ->orderBy('created_at', 'asc')
-        ->get()
-        ->groupBy(function ($log) {
-            return $log->created_at->format('H:00');
-        })
-        ->map(function ($group) {
-            return $group->sum('payload_size');
-        });
-
-        // Siapkan data untuk packet loss
-        $packetLossData = $node->logs()
-        ->orderBy('created_at', 'desc')  // Tambahkan ini untuk memastikan urutan
-        ->get()
-        ->groupBy(function ($log) {
-            return $log->created_at->format('H:00');
-        })->map(function ($group) {
-            $sent = $group->sum('expected_data');
-            $lost = $group->sum('expected_data') - $group->sum('received_data');
-            return [
-                'sent' => $sent,
-                'lost' => max($lost, 0),
-            ];
-        });
-
+    
         // Ambil data sensor terbaru
         $sensorDataByTime = [];
         foreach ($node->sensors as $sensor) {
-           $allData = $sensor->soilMoistureData()->orderBy('created_at', 'desc')->get();
-           foreach ($allData as $data) {
-               $timestamp = $data->created_at->format('Y-m-d H:i:s');
-               if (!isset($sensorDataByTime[$timestamp])) {
-                   $sensorDataByTime[$timestamp] = [
-                       'timestamp' => $timestamp,
-                       'sensors' => []
-                   ];
-               }
-               $sensorDataByTime[$timestamp]['sensors'][$sensor->sensor_id] = $data->moisture_value;
-           }
+            $allData = $sensor->soilMoistureData()->orderBy('created_at', 'desc')->get();
+            foreach ($allData as $data) {
+                $timestamp = $data->created_at->format('Y-m-d H:i');
+                if (!isset($sensorDataByTime[$timestamp])) {
+                    $sensorDataByTime[$timestamp] = [
+                        'timestamp' => $timestamp,
+                        'sensors' => []
+                    ];
+                }
+                $sensorDataByTime[$timestamp]['sensors'][$sensor->sensor_id] = $data->moisture_value;
+            }
         }
-        
+    
         return view('tables-slave2', compact(
             'averageHumidity',
-            'totalPayload', 
+            'totalPayload',
             'logTotal',
             'packetLoss',
-            'lineChartData',
-            'packetLossData',
-            'sensorDataByTime' // Ganti latestSensorData dengan sensorData
+            'minuteData',
+            'hourlyData',
+            'packetLossMinute',
+            'packetLossHourly',
+            'sensorDataByTime'
         ));
     }
 
     public function tables_slave3()
     {
-        // Ambil Node 1 berdasarkan node_type dengan huruf kecil tanpa spasi
         $node = Node::with(['sensors.soilMoistureData', 'logs'])->where('node_type', 'slave3')->first();
-
+    
         if (!$node) {
             return view('tables-slave3', [
                 'averageHumidity' => 'N/A',
                 'totalPayload' => 'N/A',
                 'logTotal' => 0,
                 'packetLoss' => 'N/A',
-                'lineChartData' => [],
-                'packetLossData' => [],
-                'latestSensorData' => [], // Tambahkan variabel ini
+                'minuteData' => [],
+                'hourlyData' => [],
+                'packetLossMinute' => [],
+                'packetLossHourly' => [],
+                'sensorDataByTime' => []
             ]);
         }
-
+    
+        // Ambil semua logs
+        $logs = $node->logs()->orderBy('created_at', 'asc')->get();
+    
+        // Data payload per menit
+        $minuteData = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:i');
+        })->map(function ($group) {
+            return [
+                'payload_size' => $group->sum('payload_size'),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:i:s')
+            ];
+        });
+    
+        // Data payload per jam
+        $hourlyData = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:00');
+        })->map(function ($group) {
+            return [
+                'payload_size' => $group->sum('payload_size'),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:00:00')
+            ];
+        });
+    
+        // Data packet loss per menit
+        $packetLossMinute = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:i');
+        })->map(function ($group) {
+            $received = $group->sum('received_data');
+            $expected = $group->sum('expected_data');
+            $lost = $expected - $received;
+            return [
+                'received' => $received,
+                'lost' => max($lost, 0),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:i:s')
+            ];
+        });
+    
+        // Data packet loss per jam
+        $packetLossHourly = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:00');
+        })->map(function ($group) {
+            $received = $group->sum('received_data');
+            $expected = $group->sum('expected_data');
+            $lost = $expected - $received;
+            return [
+                'received' => $received,
+                'lost' => max($lost, 0),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:00:00')
+            ];
+        });
+    
         // Hitung rata-rata kelembaban
         $nodeMoistureValue = 0;
         $nodeSoilMoistureCount = 0;
-
+    
         foreach ($node->sensors as $sensor) {
             $sensorMoistureData = $sensor->soilMoistureData()->get();
             foreach ($sensorMoistureData as $data) {
@@ -430,75 +559,48 @@ class DataController extends Controller
                 $nodeSoilMoistureCount++;
             }
         }
-
+    
         $averageHumidity = $nodeSoilMoistureCount > 0
             ? round($nodeMoistureValue / $nodeSoilMoistureCount, 2)
             : 'N/A';
-
-        // Hitung total payload data
-        $nodeLogs = $node->logs()->get();
-        $totalPayload = $nodeLogs->sum('payload_size');
-
-        // Hitung jumlah log
-        $logTotal = $nodeLogs->where('received_data', '!=', 0)->count();
-
+    
+        // Hitung total payload dan log
+        $totalPayload = $logs->sum('payload_size');
+        $logTotal = $logs->where('received_data', '!=', 0)->count();
+    
         // Hitung packet loss
-        $expectedData = $nodeLogs->sum('expected_data');
-        $receivedData = $nodeLogs->sum('received_data');
+        $expectedData = $logs->sum('expected_data');
+        $receivedData = $logs->sum('received_data');
         $packetLoss = $expectedData > 0
             ? round((($expectedData - $receivedData) / $expectedData) * 100, 2)
             : 0;
-
-        // Siapkan data untuk line chart
-        $lineChartData = $node->logs()
-        ->orderBy('created_at', 'asc')
-        ->get()
-        ->groupBy(function ($log) {
-            return $log->created_at->format('H:00');
-        })
-        ->map(function ($group) {
-            return $group->sum('payload_size');
-        });
-
-        // Siapkan data untuk packet loss
-        $packetLossData = $node->logs()
-        ->orderBy('created_at', 'desc')  // Tambahkan ini untuk memastikan urutan
-        ->get()
-        ->groupBy(function ($log) {
-            return $log->created_at->format('H:00');
-        })->map(function ($group) {
-            $sent = $group->sum('expected_data');
-            $lost = $group->sum('expected_data') - $group->sum('received_data');
-            return [
-                'sent' => $sent,
-                'lost' => max($lost, 0),
-            ];
-        });
-
+    
         // Ambil data sensor terbaru
         $sensorDataByTime = [];
         foreach ($node->sensors as $sensor) {
-           $allData = $sensor->soilMoistureData()->orderBy('created_at', 'desc')->get();
-           foreach ($allData as $data) {
-               $timestamp = $data->created_at->format('Y-m-d H:i:s');
-               if (!isset($sensorDataByTime[$timestamp])) {
-                   $sensorDataByTime[$timestamp] = [
-                       'timestamp' => $timestamp,
-                       'sensors' => []
-                   ];
-               }
-               $sensorDataByTime[$timestamp]['sensors'][$sensor->sensor_id] = $data->moisture_value;
-           }
+            $allData = $sensor->soilMoistureData()->orderBy('created_at', 'desc')->get();
+            foreach ($allData as $data) {
+                $timestamp = $data->created_at->format('Y-m-d H:i');
+                if (!isset($sensorDataByTime[$timestamp])) {
+                    $sensorDataByTime[$timestamp] = [
+                        'timestamp' => $timestamp,
+                        'sensors' => []
+                    ];
+                }
+                $sensorDataByTime[$timestamp]['sensors'][$sensor->sensor_id] = $data->moisture_value;
+            }
         }
-        
+    
         return view('tables-slave3', compact(
             'averageHumidity',
-            'totalPayload', 
+            'totalPayload',
             'logTotal',
             'packetLoss',
-            'lineChartData',
-            'packetLossData',
-            'sensorDataByTime' // Ganti latestSensorData dengan sensorData
+            'minuteData',
+            'hourlyData',
+            'packetLossMinute',
+            'packetLossHourly',
+            'sensorDataByTime'
         ));
     }
 
