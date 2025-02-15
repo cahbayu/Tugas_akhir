@@ -261,19 +261,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const minuteData = @json($minuteData);
     const hourlyData = @json($hourlyData);
     
-    // Transform data menggunakan datetime string
+    // Transform data
     const minuteSeries = Object.entries(minuteData).map(([time, data]) => ({
-        x: data.datetime,  // Menggunakan datetime langsung
+        x: new Date(data.timestamp * 1000),
         y: data.payload_size
-    })).sort((a, b) => new Date(a.x) - new Date(b.x));
+    })).sort((a, b) => a.x - b.x);
 
     const hourlySeries = Object.entries(hourlyData).map(([time, data]) => ({
-        x: data.datetime,  // Menggunakan datetime langsung
+        x: new Date(data.timestamp * 1000),
         y: data.payload_size
-    })).sort((a, b) => new Date(a.x) - new Date(b.x));
+    })).sort((a, b) => a.x - b.x);
 
     let currentSeries = hourlySeries;
-    const zoomThreshold = 1000 * 60 * 60 * 3;
+    const zoomThreshold = 1000 * 60 * 60 * 3; // 3 jam dalam milliseconds
 
     const chart = new ApexCharts(document.querySelector("#lineChart"), {
         series: [{
