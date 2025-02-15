@@ -121,6 +121,84 @@ class DataController extends Controller
         ));
     }
 
+    public function tables_master(Request $request)
+    {
+        $node = Node::with('logs')->where('node_type', 'master')->first();
+        
+        if (!$node) {
+            return view('tables-master', [
+                'logs' => collect(),
+                'totalPayload' => 'N/A',
+                'logTotal' => 0,
+                'packetLoss' => 'N/A',
+                'minuteData' => [],
+                'hourlyData' => [],
+                'packetLossData' => []
+            ]);
+        }
+    
+        $logs = $node->logs()
+            ->where('node_type', 'master')
+            ->orderBy('created_at', 'asc')
+            ->get();
+        
+        // Data per menit
+        $minuteData = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:i');
+        })->map(function ($group) {
+            return [
+                'payload_size' => $group->sum('payload_size'),
+                'count' => $group->count(),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:i:s')
+            ];
+        });
+    
+        // Data per jam
+        $hourlyData = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:00');
+        })->map(function ($group) {
+            return [
+                'payload_size' => $group->sum('payload_size'),
+                'count' => $group->count(),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:00:00')
+            ];
+        });
+    
+        $totalPayload = $logs->sum('payload_size');
+        $logTotal = $logs->where('received_data', '!=', 0)->count();
+        
+        $expectedData = $logs->sum('expected_data');
+        $receivedData = $logs->sum('received_data');
+        $packetLoss = $expectedData > 0
+            ? round((($expectedData - $receivedData) / $expectedData) * 100, 2)
+            : 0;
+    
+        // Packet Loss Data (tetap per jam)
+        $packetLossData = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d H:00');
+        })->map(function ($group) {
+            $sent = $group->sum('expected_data');
+            $lost = $group->sum('expected_data') - $group->sum('received_data');
+            return [
+                'sent' => $sent,
+                'lost' => max($lost, 0),
+                'timestamp' => $group->first()->created_at->timestamp,
+                'datetime' => $group->first()->created_at->format('Y-m-d H:00:00')
+            ];
+        });
+        
+        return view('tables-master', compact(
+            'logs',
+            'totalPayload',
+            'logTotal',
+            'packetLoss',
+            'minuteData',
+            'hourlyData',
+            'packetLossData'
+        ));
+    }
 
     public function tables_slave1()
     {

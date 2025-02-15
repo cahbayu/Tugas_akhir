@@ -114,6 +114,11 @@
                 </a>
                 <ul id="tables-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
                     <li>
+                        <a href="tables-master">
+                            <i class="bi bi-circle"></i><span>Master</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="tables-slave1">
                             <i class="bi bi-circle"></i><span>Slave1</span>
                         </a>
@@ -347,7 +352,7 @@
                                             .then(({ nodes }) => {
                                                 if (!nodes || nodes.length === 0) return;
 
-                                                // Kumpulkan semua timestamps yang unik dari semua node
+                                                // Kumpulkan semua timestamps yang unik
                                                 let allTimestamps = new Set();
                                                 nodes.forEach(node => {
                                                     if (node.data && node.data[0] && node.data[0].timestamps) {
@@ -357,10 +362,36 @@
                                                     }
                                                 });
                                                 
-                                                // Convert ke array dan sort
-                                                let timestamps = Array.from(allTimestamps).sort();
+                                                // Convert ke array
+                                                let timestamps = Array.from(allTimestamps);
+                                                
+                                                // Fungsi untuk mendapatkan jam dari timestamp
+                                                const getHour = (timeStr) => {
+                                                    return parseInt(timeStr.split(':')[0]);
+                                                };
 
-                                                // Inisialisasi array total dengan panjang timestamps
+                                                // Fungsi untuk menyesuaikan nilai jam relatif terhadap jam 16:00
+                                                const getAdjustedHour = (hour) => {
+                                                    if (hour >= 16) {
+                                                        return hour - 16; // Jam 16:00 menjadi 0, 17:00 menjadi 1, dst
+                                                    } else {
+                                                        return hour + 8; // Jam 00:00 menjadi 8, 01:00 menjadi 9, dst
+                                                    }
+                                                };
+
+                                                // Urutkan timestamps
+                                                timestamps.sort((a, b) => {
+                                                    let hourA = getHour(a);
+                                                    let hourB = getHour(b);
+                                                    
+                                                    // Sesuaikan jam relatif terhadap 16:00
+                                                    let adjustedHourA = getAdjustedHour(hourA);
+                                                    let adjustedHourB = getAdjustedHour(hourB);
+                                                    
+                                                    return adjustedHourA - adjustedHourB;
+                                                });
+
+                                                // Inisialisasi array total
                                                 let totalByTimestamp = new Array(timestamps.length).fill(0);
 
                                                 // Prepare series data
@@ -373,7 +404,6 @@
                                                 nodes.forEach(node => {
                                                     let nodeData = new Array(timestamps.length).fill(0);
                                                     
-                                                    // Jika node memiliki data
                                                     if (node.data && node.data[0]) {
                                                         node.data[0].timestamps.forEach((timestamp, index) => {
                                                             const timestampIndex = timestamps.indexOf(timestamp);
@@ -400,12 +430,10 @@
                                             })
                                             .catch(error => console.error('Error:', error));
                                     }
+                                    
 
                                         // Initial load
                                         updateChart();
-
-                                        // Auto update every 5 seconds
-                                        setInterval(() => updateChart(), 5000);
 
                                         // Filter handler
                                         document.querySelectorAll('.dropdown-item').forEach(item => {

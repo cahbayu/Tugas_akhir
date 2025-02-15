@@ -119,6 +119,11 @@
                 </a>
                 <ul id="tables-nav" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
                     <li>
+                        <a href="tables-master">
+                            <i class="bi bi-circle"></i><span>Master</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="tables-slave1" >
                             <i class="bi bi-circle"></i><span>Slave1</span>
                         </a>

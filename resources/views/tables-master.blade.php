@@ -119,12 +119,12 @@
                 </a>
                 <ul id="tables-nav" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
                     <li>
-                        <a href="tables-master">
+                        <a href="tables-master" class="active">
                             <i class="bi bi-circle"></i><span>Master</span>
                         </a>
                     </li>
                     <li>
-                        <a href="tables-slave1" class="active">
+                        <a href="tables-slave1" class=>
                             <i class="bi bi-circle"></i><span>Slave1</span>
                         </a>
                     </li>
@@ -191,27 +191,7 @@
                 <div class="col-xxl-3 col-md-6">
                     <div class="card info-card sales-card">
                         <div class="card-body mt-4">
-                            <h5 class="card-title">Kelembaban <span id="data-title">| Slave 1</span></h5>
-
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-moisture"></i>
-                                </div>
-                                <div class="ps-1" id="humidity-data">
-                                    <h6 id="slave1-humidity">
-                                        Slave 1 : {{ $averageHumidity !== 'N/A' ? $averageHumidity . '%' : 'N/A' }}
-                                    </h6>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div class="col-xxl-3 col-md-6">
-                    <div class="card info-card sales-card">
-                        <div class="card-body mt-4">
-                            <h5 class="card-title">Paket Data <span id="data-title">| Slave 1</span></h5>
+                            <h5 class="card-title">Paket Data <span id="data-title">| Master</span></h5>
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
@@ -230,7 +210,7 @@
                 <div class="col-xxl-3 col-md-6">
                     <div class="card info-card revenue-card">
                         <div class="card-body mt-4">
-                            <h5 class="card-title">Log <span id="data-title">| Slave 1</span></h5>
+                            <h5 class="card-title">Log <span id="data-title">| Master</span></h5>
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
@@ -251,7 +231,7 @@
                 <div class="col-xxl-3 col-xl-12">
                     <div class="card info-card customers-card">
                         <div class="card-body mt-4">
-                            <h5 class="card-title">Packetloss <span id="data-title">| Slave 1</span></h5>
+                            <h5 class="card-title">Packetloss <span id="data-title">| Master</span></h5>
 
                             <div class="d-flex align-items-center">
                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
@@ -272,65 +252,150 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body mt-4">
-                            <h5 class="card-title">Data Payload <span id="data-title">| Slave 1</span></h5>
+                            <h5 class="card-title">Data Payload <span id="data-title">| Master</span></h5>
                             <!-- Line Chart -->
                             <div id="lineChart"></div>
 
                             <script>
-                                document.addEventListener("DOMContentLoaded", () => {
-                                    const lineChartData = @json($lineChartData);
+document.addEventListener("DOMContentLoaded", () => {
+    const minuteData = @json($minuteData);
+    const hourlyData = @json($hourlyData);
+    
+    // Transform data menggunakan datetime string
+    const minuteSeries = Object.entries(minuteData).map(([time, data]) => ({
+        x: data.datetime,  // Menggunakan datetime langsung
+        y: data.payload_size
+    })).sort((a, b) => new Date(a.x) - new Date(b.x));
 
-                                    const categories = Object.keys(lineChartData);
-                                    const data = Object.values(lineChartData);
+    const hourlySeries = Object.entries(hourlyData).map(([time, data]) => ({
+        x: data.datetime,  // Menggunakan datetime langsung
+        y: data.payload_size
+    })).sort((a, b) => new Date(a.x) - new Date(b.x));
 
-                                    const chart = new ApexCharts(document.querySelector("#lineChart"), {
-                                        series: [{
-                                            name: "Payload Size",
-                                            data
-                                        }],
-                                        chart: {
-                                            height: 350,
-                                            type: 'line',
-                                            zoom: {
-                                                enabled: true
-                                            }
-                                        },
-                                        colors: ['#FF6B6B'],
-                                        dataLabels: {
-                                            enabled: false
-                                        },
-                                        stroke: {
-                                            curve: 'smooth'
-                                        },
-                                        xaxis: {
-                                            categories,
-                                            title: {
-                                                text: "Time"
-                                            }
-                                        },
-                                        yaxis: {
-                                            title: {
-                                                text: "Payload Size (Bytes)"
-                                            },
-                                            labels: {
-                                                formatter: function(value) {
-                                                    return value + " B";
-                                                }
-                                            }
-                                        },
-                                        tooltip: {
-                                            shared: true,
-                                            intersect: false,
-                                            y: {
-                                                formatter: function(value) {
-                                                    return value + " B";
-                                                }
-                                            }
-                                        }
-                                    });
+    let currentSeries = hourlySeries;
+    const zoomThreshold = 1000 * 60 * 60 * 3;
 
-                                    chart.render();
-                                });
+    const chart = new ApexCharts(document.querySelector("#lineChart"), {
+        series: [{
+            name: "Payload Size",
+            data: currentSeries
+        }],
+        chart: {
+            height: 350,
+            type: 'line',
+            zoom: {
+                enabled: true,
+                type: 'x',
+                autoScaleYaxis: true
+            },
+            toolbar: {
+                show: true,
+                tools: {
+                    download: true,
+                    selection: true,
+                    zoom: true,
+                    zoomin: true,
+                    zoomout: true,
+                    pan: true,
+                    reset: true
+                }
+            },
+            events: {
+                beforeZoom: (chartContext, { xaxis }) => {
+                    const timeRange = xaxis.max - xaxis.min;
+                    const newData = timeRange < zoomThreshold ? minuteSeries : hourlySeries;
+                    
+                    chart.updateSeries([{
+                        name: "Payload Size",
+                        data: newData
+                    }]);
+                    
+                    return {
+                        xaxis: {
+                            min: xaxis.min,
+                            max: xaxis.max
+                        }
+                    };
+                },
+                zoomed: (chartContext, { xaxis }) => {
+                    const timeRange = xaxis.max - xaxis.min;
+                    if (timeRange >= zoomThreshold && chart.w.globals.seriesData[0] === minuteSeries) {
+                        chart.updateSeries([{
+                            name: "Payload Size",
+                            data: hourlySeries
+                        }]);
+                    }
+                },
+                beforeResetZoom: () => {
+                    chart.updateSeries([{
+                        name: "Payload Size",
+                        data: hourlySeries
+                    }]);
+                }
+            }
+        },
+        colors: ['#2E93fA'],
+        stroke: {
+            curve: 'smooth',
+            width: 2
+        },
+        xaxis: {
+            type: 'datetime',
+            title: {
+                text: "Time"
+            },
+            labels: {
+                datetimeFormatter: {
+                    year: 'yyyy',
+                    month: 'MMM \'yy',
+                    day: 'dd MMM',
+                    hour: 'HH:mm'
+                }
+            }
+        },
+        yaxis: {
+            title: {
+                text: "Payload Size (Bytes)"
+            },
+            labels: {
+                formatter: function(value) {
+                    return Math.round(value) + " B";
+                }
+            }
+        },
+        tooltip: {
+            x: {
+                format: 'dd MMM yyyy HH:mm'
+            },
+            y: {
+                formatter: function(value) {
+                    return Math.round(value) + " B";
+                }
+            }
+        },
+        annotations: {
+            yaxis: [{
+                y: 0,
+                borderColor: '#999',
+                label: {
+                    text: 'Zoom in untuk melihat data per menit',
+                    style: {
+                        color: "#333",
+                        background: '#fff8e1'
+                    }
+                }
+            }]
+        },
+        markers: {
+            size: 4,
+            hover: {
+                size: 6
+            }
+        }
+    });
+
+    chart.render();
+});
                             </script>
                             <!-- End Line Chart -->
                         </div>
@@ -439,31 +504,31 @@
                                 <table class="table datatable">
                                     <thead>
                                         <tr>
-                                            <th>NO</th>
-                                            <th>Sensor 1</th>
-                                            <th>Sensor 2</th>
-                                            <th>Sensor 3</th>
-                                            <th>Sensor 4</th>
-                                            <th>Tanggal & Waktu</th>
+                                            <th style="text-align: center;">No</th>
+                                            <th style="text-align: center;">Tipe Node</th>
+                                            <th style="text-align: center;">Ukuran Paket Data</th>
+                                            <th style="text-align: center;">Packetloss</th>
+                                            <th style="text-align: center;" data-type="date" data-format="YYYY/DD/MM">
+                                                Start Date</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @forelse ($sensorDataByTime as $index => $data)
-                                            <tr>
+                                        @foreach ($logs as $log)
+                                            <tr style="text-align: center;">
                                                 <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $data['sensors'][1] ?? 'N/A' }}%</td>
-                                                <td>{{ $data['sensors'][2] ?? 'N/A' }}%</td>
-                                                <td>{{ $data['sensors'][3] ?? 'N/A' }}%</td>
-                                                <td>{{ $data['sensors'][4] ?? 'N/A' }}%</td>
-                                                <td>{{ $data['timestamp'] }}</td>
+                                                <td>{{ $log->node_type }}</td>
+                                                <td>{{ $log->payload_size }}</td>
+                                                @php
+                                                    $packetLoss = 0;
+                                                    if ($log->expected_data > 0) {
+                                                        $packetLoss = round((($log->expected_data - $log->received_data) / $log->expected_data) * 100, 2);
+                                                    }
+                                                @endphp
+                                                <td>{{ $packetLoss }}%</td>
+                                                <td>{{ $log->created_at }}</td>
                                             </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="4" class="text-center">Tidak ada data sensor terbaru.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
+                                        @endforeach
+                                     </tbody>
                                 </table>
                             </div>
                         </div>

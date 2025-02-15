@@ -28,6 +28,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/index', [DataController::class, 'index'])->name('index');
 
+    Route::get('/tables-master', [DataController::class, 'tables_master'])->name('tables-master');
+
     Route::get('/tables-slave1', [DataController::class, 'tables_slave1'])->name('tables-slave1');
 
     Route::get('/tables-slave2', [DataController::class, 'tables_slave2'])->name('tables-slave2');
