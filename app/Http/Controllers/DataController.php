@@ -685,27 +685,27 @@ class DataController extends Controller
             $nodeTotal = $node->logs()->sum('received_data');
             $totalAllReceived += $nodeTotal;
     
-            $nodeData = [
-                'node_type' => $node->node_type,
-                'total_received' => $nodeTotal,
-                'data' => [[
-                    'timestamps' => [],
-                    'data_count' => []
-                ]]
-            ];
-    
-            // Grup data per jam
-            $logs = $node->logs()
+            // Gunakan transformasi data per jam dengan tambahan informasi
+            $hourlyData = $node->logs()
                 ->orderBy('created_at', 'asc')
                 ->get()
                 ->groupBy(function ($log) {
-                    return $log->created_at->format('H:00');
+                    return $log->created_at->format('Y-m-d H:00');
+                })
+                ->map(function ($group) {
+                    return [
+                        'received_data' => $group->sum('received_data'),
+                        'count' => $group->count(),
+                        'timestamp' => $group->first()->created_at->timestamp,
+                        'datetime' => $group->first()->created_at->format('Y-m-d H:00')
+                    ];
                 });
     
-            foreach ($logs as $timestamp => $logGroup) {
-                $nodeData['data'][0]['timestamps'][] = $timestamp;
-                $nodeData['data'][0]['data_count'][] = $logGroup->sum('received_data');
-            }
+            $nodeData = [
+                'node_type' => $node->node_type,
+                'total_received' => $nodeTotal,
+                'data' => $hourlyData->values()->toArray()
+            ];
     
             $data[] = $nodeData;
         }

@@ -295,145 +295,175 @@
                          
                                 <script>
                                     document.addEventListener("DOMContentLoaded", () => {
-                                        const chart = new ApexCharts(document.querySelector("#areaChart"), {
-                                            series: [
-                                                { name: 'Total Data', data: [] },
-                                                { name: 'Master', data: [] },
-                                                { name: 'Slave 1', data: [] },
-                                                { name: 'Slave 2', data: [] },
-                                                { name: 'Slave 3', data: [] }
-                                            ],
-                                            chart: {
-                                                height: 350,
-                                                type: 'line',
-                                                zoom: { enabled: true },
-                                                toolbar: { // Pastikan toolbar didefinisikan hanya di sini
-                                                    show: true, // Aktifkan toolbar
-                                                    tools: {
-                                                        download: true, // Tombol download
-                                                        selection: false,
-                                                        zoom: true, // Tombol zoom
-                                                        zoomin: true, // Tombol zoom in
-                                                        zoomout: true, // Tombol zoom out
-                                                        pan: false,
-                                                        reset: true // Tombol reset zoom
-                                                    }
-                                                },
-                                                animations: { enabled: true, easing: 'linear' }
-                                            },
-                                            markers: { size: 4 },
-                                            colors: ['#800080', '#FF1493', '#1E90FF', '#32CD32', '#FF8C00'],
-                                            stroke: { curve: 'smooth', width: 2 },
-                                            xaxis: { categories: [] },
-                                            yaxis: {
-                                                title: { text: 'Jumlah Data Diterima' },
-                                                min: 0,
-                                                forceNiceScale: true,
-                                                decimalsInFloat: 0,
-                                                labels: { formatter: (val) => Math.max(0, Math.floor(val)) }
-                                            },
-                                            tooltip: {
-                                                shared: true,
-                                                intersect: false,
-                                                y: {
-                                                    formatter: (value) => `${Math.floor(value)} data`
-                                                }
-                                            },
-                                            grid: {
-                                                row: { colors: ['transparent', 'transparent'], opacity: 0.5 }
-                                            }
-                                        });
-
-                                        chart.render();
-
                                         function updateChart(range = 'hourly') {
-                                        fetch(`/api/soil-moisture-data?range=${range}`)
-                                            .then(response => response.json())
-                                            .then(({ nodes }) => {
-                                                if (!nodes || nodes.length === 0) return;
+                                            fetch(`/api/soil-moisture-data?range=${range}`)
+                                                .then(response => response.json())
+                                                .then(({ nodes }) => {
+                                                    if (!nodes || nodes.length === 0) return;
 
-                                                // Kumpulkan semua timestamps yang unik
-                                                let allTimestamps = new Set();
-                                                nodes.forEach(node => {
-                                                    if (node.data && node.data[0] && node.data[0].timestamps) {
-                                                        node.data[0].timestamps.forEach(timestamp => {
-                                                            allTimestamps.add(timestamp);
-                                                        });
-                                                    }
-                                                });
-                                                
-                                                // Convert ke array
-                                                let timestamps = Array.from(allTimestamps);
-                                                
-                                                // Fungsi untuk mendapatkan jam dari timestamp
-                                                const getHour = (timeStr) => {
-                                                    return parseInt(timeStr.split(':')[0]);
-                                                };
+                                                    // Fungsi untuk mengelompokkan data per jam
+                                                    function groupDataByHour(nodeData) {
+                                                        const hourlyData = {};
 
-                                                // Fungsi untuk menyesuaikan nilai jam relatif terhadap jam 16:00
-                                                const getAdjustedHour = (hour) => {
-                                                    if (hour >= 16) {
-                                                        return hour - 16; // Jam 16:00 menjadi 0, 17:00 menjadi 1, dst
-                                                    } else {
-                                                        return hour + 8; // Jam 00:00 menjadi 8, 01:00 menjadi 9, dst
-                                                    }
-                                                };
-
-                                                // Urutkan timestamps
-                                                timestamps.sort((a, b) => {
-                                                    let hourA = getHour(a);
-                                                    let hourB = getHour(b);
-                                                    
-                                                    // Sesuaikan jam relatif terhadap 16:00
-                                                    let adjustedHourA = getAdjustedHour(hourA);
-                                                    let adjustedHourB = getAdjustedHour(hourB);
-                                                    
-                                                    return adjustedHourA - adjustedHourB;
-                                                });
-
-                                                // Inisialisasi array total
-                                                let totalByTimestamp = new Array(timestamps.length).fill(0);
-
-                                                // Prepare series data
-                                                const series = [{
-                                                    name: 'Total Data',
-                                                    data: totalByTimestamp
-                                                }];
-
-                                                // Proses data untuk setiap node
-                                                nodes.forEach(node => {
-                                                    let nodeData = new Array(timestamps.length).fill(0);
-                                                    
-                                                    if (node.data && node.data[0]) {
-                                                        node.data[0].timestamps.forEach((timestamp, index) => {
-                                                            const timestampIndex = timestamps.indexOf(timestamp);
-                                                            if (timestampIndex !== -1) {
-                                                                nodeData[timestampIndex] = node.data[0].data_count[index];
-                                                                totalByTimestamp[timestampIndex] += node.data[0].data_count[index];
+                                                        // Kelompokkan data berdasarkan jam
+                                                        nodeData.forEach(entry => {
+                                                            // Bulatkan ke jam penuh
+                                                            const hourTimestamp = Math.floor(entry.timestamp / 3600) * 3600;
+                                                            
+                                                            if (!hourlyData[hourTimestamp]) {
+                                                                hourlyData[hourTimestamp] = entry.received_data;
+                                                            } else {
+                                                                hourlyData[hourTimestamp] += entry.received_data;
                                                             }
                                                         });
+
+                                                        // Konversi ke format yang dibutuhkan
+                                                        return Object.entries(hourlyData)
+                                                            .map(([timestamp, value]) => ({
+                                                                timestamp: parseInt(timestamp),
+                                                                received_data: value
+                                                            }));
                                                     }
 
-                                                    series.push({
-                                                        name: node.node_type === 'master' ? 'Master' :
-                                                            node.node_type === 'slave1' ? 'Slave 1' :
-                                                            node.node_type === 'slave2' ? 'Slave 2' : 'Slave 3',
-                                                        data: nodeData
+                                                    // Proses data untuk setiap node dengan pengelompokan per jam
+                                                    const processedNodes = nodes.map(node => ({
+                                                        ...node,
+                                                        data: groupDataByHour(node.data)
+                                                    }));
+
+                                                    // Collect unique timestamps from all nodes after grouping
+                                                    const allTimestamps = new Set();
+                                                    processedNodes.forEach(node => {
+                                                        node.data.forEach(entry => {
+                                                            allTimestamps.add(entry.timestamp);
+                                                        });
                                                     });
-                                                });
 
-                                                // Update chart
-                                                chart.updateOptions({
-                                                    xaxis: { categories: timestamps },
-                                                    series: series
-                                                });
-                                            })
-                                            .catch(error => console.error('Error:', error));
-                                    }
-                                    
+                                                    // Transform data to support datetime and timestamp
+                                                    const transformedData = processedNodes.map(node => {
+                                                        // Create data array with 0 for all timestamps
+                                                        const seriesData = Array.from(allTimestamps).map(timestamp => {
+                                                            const matchingEntry = node.data.find(entry => entry.timestamp === timestamp);
+                                                            return {
+                                                                x: new Date(timestamp * 1000),
+                                                                y: matchingEntry ? matchingEntry.received_data : 0
+                                                            };
+                                                        });
 
-                                        // Initial load
-                                        updateChart();
+                                                        // Sort data by timestamp
+                                                        seriesData.sort((a, b) => a.x - b.x);
+
+                                                        return {
+                                                            name: node.node_type === 'master' ? 'Master' :
+                                                                node.node_type === 'slave1' ? 'Slave 1' :
+                                                                node.node_type === 'slave2' ? 'Slave 2' : 'Slave 3',
+                                                            data: seriesData
+                                                        };
+                                                    });
+
+                                                    // Add total data as first series
+                                                    const totalSeries = {
+                                                        name: 'Total Data',
+                                                        data: Array.from(allTimestamps).map(timestamp => {
+                                                            // Calculate total data for each timestamp
+                                                            const totalY = processedNodes.reduce((total, node) => {
+                                                                const matchingEntry = node.data.find(entry => entry.timestamp === timestamp);
+                                                                return total + (matchingEntry ? matchingEntry.received_data : 0);
+                                                            }, 0);
+
+                                                            return {
+                                                                x: new Date(timestamp * 1000),
+                                                                y: totalY
+                                                            };
+                                                        }).sort((a, b) => a.x - b.x)
+                                                    };
+
+                                                    transformedData.unshift(totalSeries);
+
+                                                    // Chart configuration with new features
+                                                    const chart = new ApexCharts(document.querySelector("#areaChart"), {
+                                                        series: transformedData,
+                                                        chart: {
+                                                            height: 350,
+                                                            type: 'line',
+                                                            zoom: {
+                                                                enabled: true,
+                                                                type: 'x',
+                                                                autoScaleYaxis: true
+                                                            },
+                                                            toolbar: {
+                                                                show: true,
+                                                                tools: {
+                                                                    download: true,
+                                                                    selection: true,
+                                                                    zoom: true,
+                                                                    zoomin: true,
+                                                                    zoomout: true,
+                                                                    pan: true,
+                                                                    reset: true
+                                                                }
+                                                            }
+                                                        },
+                                                        colors: ['#800080', '#FF1493', '#1E90FF', '#32CD32', '#FF8C00'],
+                                                        stroke: { 
+                                                            curve: 'smooth', 
+                                                            width: 2 
+                                                        },
+                                                        xaxis: {
+                                                            type: 'datetime',
+                                                            labels: {
+                                                                datetimeFormatter: {
+                                                                    year: 'yyyy',
+                                                                    month: 'MMM \'yy',
+                                                                    day: 'dd MMM',
+                                                                    hour: 'HH:mm'
+                                                                }
+                                                            }
+                                                        },
+                                                        yaxis: {
+                                                            title: { text: 'Jumlah Data Diterima per Jam' },
+                                                            min: 0,
+                                                            forceNiceScale: true,
+                                                            decimalsInFloat: 0,
+                                                            labels: { 
+                                                                formatter: (val) => Math.max(0, Math.floor(val)) 
+                                                            }
+                                                        },
+                                                        tooltip: {
+                                                            shared: true,
+                                                            intersect: false,
+                                                            x: {
+                                                                format: 'dd MMM yyyy HH:mm'
+                                                            },
+                                                            y: {
+                                                                formatter: (value, { series, seriesIndex, dataPointIndex }) => {
+                                                                    const seriesName = series[seriesIndex].name;
+                                                                    return `${Math.floor(value || 0)} data per jam`;
+                                                                }
+                                                            }
+                                                        },
+                                                        grid: {
+                                                            row: { 
+                                                                colors: ['transparent', 'transparent'], 
+                                                                opacity: 0.5 
+                                                            }
+                                                        },
+                                                        markers: { 
+                                                            size: 4,
+                                                            hover: {
+                                                                size: 6
+                                                            }
+                                                        }
+                                                    });
+
+                                                    // Render chart
+                                                    chart.render();
+                                                })
+                                                .catch(error => console.error('Error:', error));
+                                        }
+
+                                        // Initial load with explicit hourly range
+                                        updateChart('hourly');
 
                                         // Filter handler
                                         document.querySelectorAll('.dropdown-item').forEach(item => {
@@ -444,8 +474,7 @@
                                             });
                                         });
                                     });
-
-                                </script>
+                            </script>
                                 </div>
                             </div>
                          </div><!-- End Reports -->
