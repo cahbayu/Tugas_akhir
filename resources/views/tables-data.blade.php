@@ -393,14 +393,14 @@
                                                 // Pastikan expected_data bukan nol untuk menghindari division by zero
                                                 if ($log->expected_data > 0) {
                                                     $packetLoss = $log->expected_data - $log->received_data;
-                                                    $packetLossPercentage = ($packetLoss / $log->expected_data) * 100;
+                                                    $packetLossPercentage = ($packetLoss);
                                                     $packetLossPercentage = round($packetLossPercentage, 2);
                                                 } else {
                                                     $packetLossPercentage = '0'; // Jika expected_data nol, anggap tidak ada packet loss
                                                 }
 
                                             @endphp
-                                            <td>{{ $packetLossPercentage }}% </td>
+                                            <td>{{ $packetLossPercentage }} </td>
                                             <td data-type="date" data-format="YYYY/DD/MM">{{ $log->created_at }}</td>
                                         </tr>
                                     @endforeach
@@ -416,7 +416,7 @@
                         function exportTableToCSV(filename) {
                             // Ambil data dari database
                             var rows = [
-                                ['No', 'Node', 'Ukuran Paket Data', 'Packetloss', 'Start Date'], // Header
+                                ['No', 'Peran','Tipe Node' , 'Ukuran Paket Data', 'Packetloss', 'Start Date'], // Header
                             ];
 
                             // Ambil semua baris data
@@ -426,7 +426,8 @@
                                     tr.children[1].innerText, // Node
                                     tr.children[2].innerText, // Ukuran Paket
                                     tr.children[3].innerText.replace('%', ''), // Packetloss (hapus %)
-                                    tr.children[4].innerText // Date
+                                    tr.children[4].innerText, // Date
+                                    tr.children[5].innerText,
                                 ]);
                             });
 

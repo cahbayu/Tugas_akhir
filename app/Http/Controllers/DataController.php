@@ -320,7 +320,7 @@ class DataController extends Controller
         foreach ($node->sensors as $sensor) {
             $allData = $sensor->soilMoistureData()->orderBy('created_at', 'desc')->get();
             foreach ($allData as $data) {
-                $timestamp = $data->created_at->format('Y-m-d H:i');
+                $timestamp = $data->created_at->format('Y-m-d H:i:S');
                 if (!isset($sensorDataByTime[$timestamp])) {
                     $sensorDataByTime[$timestamp] = [
                         'timestamp' => $timestamp,
@@ -451,7 +451,7 @@ class DataController extends Controller
         foreach ($node->sensors as $sensor) {
             $allData = $sensor->soilMoistureData()->orderBy('created_at', 'desc')->get();
             foreach ($allData as $data) {
-                $timestamp = $data->created_at->format('Y-m-d H:i');
+                $timestamp = $data->created_at->format('Y-m-d H:i:s');
                 if (!isset($sensorDataByTime[$timestamp])) {
                     $sensorDataByTime[$timestamp] = [
                         'timestamp' => $timestamp,
@@ -580,7 +580,7 @@ class DataController extends Controller
         foreach ($node->sensors as $sensor) {
             $allData = $sensor->soilMoistureData()->orderBy('created_at', 'desc')->get();
             foreach ($allData as $data) {
-                $timestamp = $data->created_at->format('Y-m-d H:i');
+                $timestamp = $data->created_at->format('Y-m-d H:i:s');
                 if (!isset($sensorDataByTime[$timestamp])) {
                     $sensorDataByTime[$timestamp] = [
                         'timestamp' => $timestamp,
@@ -706,6 +706,7 @@ class DataController extends Controller
                 'total_received' => $nodeTotal,
                 'data' => $hourlyData->values()->toArray()
             ];
+    
     
             $data[] = $nodeData;
         }
